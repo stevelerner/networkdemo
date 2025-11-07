@@ -1,4 +1,4 @@
-# 🔧 Network Infrastructure Demo
+# Network Infrastructure Demo
 
 A comprehensive, self-contained Docker-based demonstration of enterprise networking concepts including VLAN segmentation, inter-VLAN routing, DNS, DHCP, HTTPS/TLS, NAT, and dynamic firewall rules.
 
@@ -6,7 +6,7 @@ A comprehensive, self-contained Docker-based demonstration of enterprise network
 
 ---
 
-## 📋 Table of Contents
+## Table of Contents
 
 - [What This Demonstrates](#what-this-demonstrates)
 - [Architecture](#architecture)
@@ -18,7 +18,7 @@ A comprehensive, self-contained Docker-based demonstration of enterprise network
 
 ---
 
-## 🎯 What This Demonstrates
+## What This Demonstrates
 
 | Concept | Implementation | Real-World Equivalent |
 |---------|---------------|----------------------|
@@ -33,7 +33,7 @@ A comprehensive, self-contained Docker-based demonstration of enterprise network
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -80,7 +80,7 @@ A comprehensive, self-contained Docker-based demonstration of enterprise network
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -122,7 +122,7 @@ make demo-all
 
 ---
 
-## 🎬 Demo Scripts
+## Demo Scripts
 
 ### 1. DNS Resolution Demo
 
@@ -130,8 +130,8 @@ make demo-all
 make demo-dns
 ```
 
-**What to say:**
-> "I've configured CoreDNS as an authoritative DNS server for the `demo.local` zone. It's dual-homed on both VLANs so clients in either network can resolve internal hostnames. This simulates split-horizon DNS in an enterprise environment."
+**Talking points:**
+> CoreDNS is configured as an authoritative DNS server for the `demo.local` zone. It's dual-homed on both VLANs so clients in either network can resolve internal hostnames. This simulates split-horizon DNS in an enterprise environment.
 
 **Technical details:**
 - CoreDNS listens on `10.10.10.53` and `10.20.20.53`
@@ -144,8 +144,8 @@ make demo-dns
 make demo-https
 ```
 
-**What to say:**
-> "The Nginx server is configured with TLS 1.2/1.3 and serves HTTPS on port 443. I've generated certificates using mkcert for local trust (or OpenSSL for self-signed). This demonstrates proper SSL/TLS configuration and certificate chain validation."
+**Talking points:**
+> The Nginx server is configured with TLS 1.2/1.3 and serves HTTPS on port 443. Certificates are generated using mkcert for local trust (or OpenSSL for self-signed). This demonstrates proper SSL/TLS configuration and certificate chain validation.
 
 **Technical details:**
 - Nginx serves on `10.10.10.10:443`
@@ -159,8 +159,8 @@ make demo-https
 make demo-routing
 ```
 
-**What to say:**
-> "The router container has interfaces in all three networks. I've enabled kernel IP forwarding (`net.ipv4.ip_forward=1`) and configured iptables rules to allow inter-VLAN traffic. Traceroute shows the hop through the router at `10.10.10.1` when reaching VLAN20 from VLAN10."
+**Talking points:**
+> The router container has interfaces in all three networks. Kernel IP forwarding (`net.ipv4.ip_forward=1`) is enabled and iptables rules are configured to allow inter-VLAN traffic. Traceroute shows the hop through the router at `10.10.10.1` when reaching VLAN20 from VLAN10.
 
 **Technical details:**
 - Router uses dynamic interface detection (not hardcoded)
@@ -174,8 +174,8 @@ make demo-routing
 make demo-dhcp
 ```
 
-**What to say:**
-> "I've configured dnsmasq to serve DHCP on VLAN20 with a pool of 10.20.20.100-200. Client20 uses `udhcpc` (BusyBox DHCP client) to obtain an IP, gateway (router), and DNS server. This is how most enterprise networks distribute configuration."
+**Talking points:**
+> dnsmasq is configured to serve DHCP on VLAN20 with a pool of 10.20.20.100-200. Client20 uses `udhcpc` (BusyBox DHCP client) to obtain an IP, gateway (router), and DNS server. This is how most enterprise networks distribute configuration.
 
 **Technical details:**
 - DHCP scope: `10.20.20.100-200`
@@ -189,8 +189,8 @@ make demo-dhcp
 make demo-nat
 ```
 
-**What to say:**
-> "The router performs source NAT (MASQUERADE) for any traffic leaving to the WAN network. Internal clients appear as `172.20.0.1` when accessing external hosts. This is how enterprise networks share a single public IP among many private hosts."
+**Talking points:**
+> The router performs source NAT (MASQUERADE) for any traffic leaving to the WAN network. Internal clients appear as `172.20.0.1` when accessing external hosts. This is how enterprise networks share a single public IP among many private hosts.
 
 **Technical details:**
 - `iptables -t nat -A POSTROUTING -o wan_if -j MASQUERADE`
@@ -203,8 +203,8 @@ make demo-nat
 make demo-firewall
 ```
 
-**What to say:**
-> "I'm using a default-deny policy on the FORWARD chain. I can dynamically add rules to allow or block specific flows. For example, I'll block VLAN20 from reaching the HTTPS service, test it, then remove the rule. This demonstrates real-time firewall policy changes."
+**Talking points:**
+> A default-deny policy is used on the FORWARD chain. Rules can be dynamically added to allow or block specific flows. For example, blocking VLAN20 from reaching the HTTPS service, testing it, then removing the rule demonstrates real-time firewall policy changes.
 
 **Technical details:**
 - Default policy: `iptables -P FORWARD DROP`
@@ -214,11 +214,11 @@ make demo-firewall
 
 ---
 
-## 💼 Talking Points for Interviews
+## Talking Points for Interviews
 
 ### Opening Statement
 
-> "I've built a portable network infrastructure demo using Docker to showcase my understanding of enterprise networking concepts. It simulates VLAN segmentation, routing, DNS, DHCP, NAT, and firewall rules—all from the command line. Let me walk you through each component."
+> This is a portable network infrastructure demo using Docker that showcases enterprise networking concepts. It simulates VLAN segmentation, routing, DNS, DHCP, NAT, and firewall rules—all from the command line.
 
 ### Key Concepts to Highlight
 
@@ -252,23 +252,23 @@ make demo-firewall
 ### Common Interview Questions & Answers
 
 **Q: How does the router know which interface leads to which VLAN?**
-> "I detect interfaces dynamically by IP address using `ip -o addr show | grep` rather than hardcoding eth0/eth1. In production, you'd use interface names or VLAN tags."
+> Interfaces are detected dynamically by IP address using `ip -o addr show | grep` rather than hardcoding eth0/eth1. In production, interface names or VLAN tags would be used.
 
 **Q: What happens if the router fails?**
-> "In this demo, it's a single point of failure. In production, I'd deploy VRRP (Virtual Router Redundancy Protocol) with two routers sharing a virtual IP. If the primary fails, the secondary takes over within seconds."
+> In this demo, it's a single point of failure. In production, VRRP (Virtual Router Redundancy Protocol) can be deployed with two routers sharing a virtual IP. If the primary fails, the secondary takes over within seconds.
 
 **Q: How do you secure DNS?**
-> "This demo uses plain DNS. For security, I'd implement DNSSEC for zone signing, DNS-over-TLS/HTTPS for query encryption, and rate limiting to prevent amplification attacks."
+> This demo uses plain DNS. For security, DNSSEC can be implemented for zone signing, DNS-over-TLS/HTTPS for query encryption, and rate limiting to prevent amplification attacks.
 
 **Q: Can you show me the firewall blocking something?**
-> "Absolutely. I'll block VLAN20 from reaching the HTTPS server on port 443."
+> Yes, VLAN20 can be blocked from reaching the HTTPS server on port 443.
 ```bash
 make demo-firewall
 ```
 
 ---
 
-## 🔧 Advanced Usage
+## Advanced Usage
 
 ### Access Container Shells
 
@@ -348,7 +348,7 @@ docker exec router iptables -F FORWARD
 
 ---
 
-## 🛠️ Troubleshooting
+## Troubleshooting
 
 ### Issue: Certificates not trusted
 
@@ -426,7 +426,7 @@ make up
 
 ---
 
-## 📚 Additional Resources
+## Additional Resources
 
 ### Learn More
 
@@ -448,7 +448,7 @@ Ideas for enhancement:
 
 ---
 
-## 🎓 Makefile Commands Reference
+## Makefile Commands Reference
 
 ```bash
 make help           # Show all available commands
@@ -482,13 +482,13 @@ make health         # Health check all services
 
 ---
 
-## 📝 License
+## License
 
 This is a demonstration project for educational purposes. Feel free to use, modify, and share.
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Found a bug or have an improvement? Feel free to:
 1. Test the change locally
@@ -497,7 +497,7 @@ Found a bug or have an improvement? Feel free to:
 
 ---
 
-## 💡 Tips for Your Interview
+## Tips for Your Interview
 
 1. **Practice the demos** before the interview—know exactly what each command will output
 2. **Be ready to explain** why you made specific choices (e.g., CoreDNS vs BIND)
@@ -507,7 +507,7 @@ Found a bug or have an improvement? Feel free to:
 
 ---
 
-**Good luck! 🚀**
+**Good luck!**
 
 If you have questions or want to discuss networking concepts, feel free to reach out.
 
