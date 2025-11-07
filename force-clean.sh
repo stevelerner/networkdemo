@@ -17,7 +17,7 @@ docker compose down -v --remove-orphans 2>/dev/null || true
 
 # Remove any containers with our names
 echo -e "${YELLOW}Removing any stray containers...${NC}"
-docker rm -f router coredns dnsmasq nginx-app client10 client20 monitor wan-host 2>/dev/null || true
+docker rm -f router coredns dnsmasq nginx-app client10 client20 wan-host 2>/dev/null || true
 
 # Remove networks
 echo -e "${YELLOW}Removing networks...${NC}"
@@ -40,7 +40,7 @@ docker volume prune -f
 
 echo ""
 echo -e "${GREEN}======================================${NC}"
-echo -e "${GREEN}✅ Force cleanup complete!${NC}"
+echo -e "${GREEN}Force cleanup complete!${NC}"
 echo -e "${GREEN}======================================${NC}"
 echo ""
 echo "You can now run: make certs && make up"

@@ -38,7 +38,7 @@ RUN apk add --no-cache \
 # Create a helpful motd
 RUN echo '#!/bin/sh' > /etc/profile.d/motd.sh && \
     echo 'echo "=================================================="' >> /etc/profile.d/motd.sh && \
-    echo 'echo "🔧 Network Diagnostic Client"' >> /etc/profile.d/motd.sh && \
+    echo 'echo "Network Diagnostic Client"' >> /etc/profile.d/motd.sh && \
     echo 'echo "=================================================="' >> /etc/profile.d/motd.sh && \
     echo 'echo ""' >> /etc/profile.d/motd.sh && \
     echo 'echo "Hostname: $(hostname)"' >> /etc/profile.d/motd.sh && \

@@ -78,7 +78,7 @@ force-clean: ## Force remove everything (use if stuck)
 monitor: ## Show live traffic monitoring
 	@echo "$(CYAN)Monitoring network traffic...$(NC)"
 	@echo "Press Ctrl+C to stop"
-	@docker logs -f monitor
+	@docker exec router tcpdump -i any -n -l 'icmp or port 443 or port 53 or port 67' 2>/dev/null
 
 # ============================================
 # SHELL ACCESS
@@ -102,138 +102,166 @@ shell-nginx: ## Open shell in nginx
 
 demo-dns: ## Demonstrate DNS resolution
 	@echo "=================================================="
-	@echo "$(GREEN)🌐 DNS RESOLUTION DEMO$(NC)"
+	@echo "$(GREEN)DNS RESOLUTION DEMO$(NC)"
 	@echo "=================================================="
 	@echo ""
 	@echo "$(CYAN)1. Query from VLAN10 (client10):$(NC)"
+	@echo "   $ docker exec client10 dig @10.10.10.53 app.demo.local +short"
 	@docker exec client10 dig @10.10.10.53 app.demo.local +short
 	@echo ""
 	@echo "$(CYAN)2. Full DNS query with details:$(NC)"
+	@echo "   $ docker exec client10 dig @10.10.10.53 app.demo.local"
 	@docker exec client10 dig @10.10.10.53 app.demo.local
 	@echo ""
 	@echo "$(CYAN)3. Reverse DNS lookup:$(NC)"
+	@echo "   $ docker exec client10 dig @10.10.10.53 -x 10.10.10.10 +short"
 	@docker exec client10 dig @10.10.10.53 -x 10.10.10.10 +short
 	@echo ""
 	@echo "$(CYAN)4. Query from VLAN20 (client20):$(NC)"
+	@echo "   $ docker exec client20 dig @10.20.20.53 app.demo.local +short"
 	@docker exec client20 dig @10.20.20.53 app.demo.local +short
 	@echo ""
-	@echo "$(GREEN)✅ DNS is working across both VLANs!$(NC)"
+	@echo "$(GREEN)DNS is working across both VLANs!$(NC)"
 
 demo-https: ## Demonstrate HTTPS connection
 	@echo "=================================================="
-	@echo "$(GREEN)🔒 HTTPS DEMO$(NC)"
+	@echo "$(GREEN)HTTPS DEMO$(NC)"
 	@echo "=================================================="
 	@echo ""
 	@echo "$(CYAN)1. HTTP request (should redirect to HTTPS):$(NC)"
+	@echo "   $ docker exec client10 curl -I http://app.demo.local"
 	@docker exec client10 curl -I http://app.demo.local 2>/dev/null || echo "HTTP redirect working"
 	@echo ""
 	@echo "$(CYAN)2. HTTPS request with certificate details:$(NC)"
+	@echo "   $ docker exec client10 curl -kv https://app.demo.local 2>&1 | grep -E \"subject:|issuer:|SSL connection\""
 	@docker exec client10 curl -kv https://app.demo.local 2>&1 | grep -E "subject:|issuer:|SSL connection"
 	@echo ""
 	@echo "$(CYAN)3. Fetch secure content:$(NC)"
+	@echo "   $ docker exec client10 curl -k https://app.demo.local | head -n 20"
 	@docker exec client10 curl -k https://app.demo.local 2>/dev/null | head -n 20
 	@echo ""
 	@echo "$(CYAN)4. Test API endpoint:$(NC)"
+	@echo "   $ docker exec client10 curl -k https://app.demo.local/api/info | jq ."
 	@docker exec client10 curl -k https://app.demo.local/api/info 2>/dev/null | jq .
 	@echo ""
-	@echo "$(GREEN)✅ HTTPS is working!$(NC)"
+	@echo "$(GREEN)HTTPS is working!$(NC)"
 
 demo-ping: ## Demonstrate basic connectivity
 	@echo "=================================================="
-	@echo "$(GREEN)🏓 CONNECTIVITY DEMO$(NC)"
+	@echo "$(GREEN)CONNECTIVITY DEMO$(NC)"
 	@echo "=================================================="
 	@echo ""
 	@echo "$(CYAN)1. Ping within VLAN10 (client10 -> nginx):$(NC)"
+	@echo "   $ docker exec client10 ping -c 3 10.10.10.10"
 	@docker exec client10 ping -c 3 10.10.10.10
 	@echo ""
 	@echo "$(CYAN)2. Ping cross-VLAN (client10 -> VLAN20 DNS):$(NC)"
+	@echo "   $ docker exec client10 ping -c 3 10.20.20.53"
 	@docker exec client10 ping -c 3 10.20.20.53
 	@echo ""
 	@echo "$(CYAN)3. Ping router from VLAN20:$(NC)"
-	@docker exec client20 ping -c 3 10.20.20.1
+	@echo "   $ docker exec client20 ping -c 3 10.20.20.254"
+	@docker exec client20 ping -c 3 10.20.20.254
 	@echo ""
-	@echo "$(GREEN)✅ Connectivity verified!$(NC)"
+	@echo "$(GREEN)Connectivity verified!$(NC)"
 
 demo-routing: ## Demonstrate inter-VLAN routing
 	@echo "=================================================="
-	@echo "$(GREEN)🛣️  ROUTING DEMO$(NC)"
+	@echo "$(GREEN)ROUTING DEMO$(NC)"
 	@echo "=================================================="
 	@echo ""
 	@echo "$(CYAN)1. Route table on client10:$(NC)"
+	@echo "   $ docker exec client10 ip route show"
 	@docker exec client10 ip route show
 	@echo ""
 	@echo "$(CYAN)2. Traceroute from VLAN10 to VLAN20:$(NC)"
+	@echo "   $ docker exec client10 traceroute -n -m 5 10.20.20.2"
 	@docker exec client10 traceroute -n -m 5 10.20.20.2
 	@echo ""
 	@echo "$(CYAN)3. MTR (live traceroute) from client10 to client20:$(NC)"
+	@echo "   $ docker exec client10 mtr -r -c 5 -n 10.20.20.53"
 	@docker exec client10 mtr -r -c 5 -n 10.20.20.53
 	@echo ""
 	@echo "$(CYAN)4. Router forwarding stats:$(NC)"
+	@echo "   $ docker exec router iptables -L FORWARD -v -n | head -n 20"
 	@docker exec router iptables -L FORWARD -v -n | head -n 20
 	@echo ""
-	@echo "$(GREEN)✅ Inter-VLAN routing is working!$(NC)"
+	@echo "$(GREEN)Inter-VLAN routing is working!$(NC)"
 
 demo-dhcp: ## Demonstrate DHCP
 	@echo "=================================================="
-	@echo "$(GREEN)📡 DHCP DEMO$(NC)"
+	@echo "$(GREEN)DHCP DEMO$(NC)"
 	@echo "=================================================="
 	@echo ""
 	@echo "$(CYAN)1. Current IP address on client20:$(NC)"
+	@echo "   $ docker exec client20 ip addr show eth0 | grep \"inet \""
 	@docker exec client20 ip addr show eth0 | grep "inet "
 	@echo ""
 	@echo "$(CYAN)2. DHCP lease info (if available):$(NC)"
+	@echo "   $ docker exec client20 ip route show"
 	@docker exec client20 ip route show
 	@echo ""
 	@echo "$(CYAN)3. DNS server from DHCP:$(NC)"
+	@echo "   $ docker exec client20 cat /etc/resolv.conf"
 	@docker exec client20 cat /etc/resolv.conf
 	@echo ""
 	@echo "$(CYAN)4. Test DNS after DHCP:$(NC)"
+	@echo "   $ docker exec client20 nslookup app.demo.local"
 	@docker exec client20 nslookup app.demo.local 2>/dev/null || echo "DNS working"
 	@echo ""
-	@echo "$(GREEN)✅ DHCP provided IP, gateway, and DNS!$(NC)"
+	@echo "$(GREEN)DHCP provided IP, gateway, and DNS!$(NC)"
 
 demo-nat: ## Demonstrate NAT to WAN
 	@echo "=================================================="
-	@echo "$(GREEN)🌍 NAT DEMO$(NC)"
+	@echo "$(GREEN)NAT DEMO$(NC)"
 	@echo "=================================================="
 	@echo ""
 	@echo "$(CYAN)1. Ping WAN host from VLAN10:$(NC)"
+	@echo "   $ docker exec client10 ping -c 3 172.20.0.100"
 	@docker exec client10 ping -c 3 172.20.0.100
 	@echo ""
 	@echo "$(CYAN)2. HTTP request to WAN:$(NC)"
+	@echo "   $ docker exec client10 curl -s http://172.20.0.100:8080"
 	@docker exec client10 curl -s http://172.20.0.100:8080 || echo "WAN host reachable"
 	@echo ""
 	@echo "$(CYAN)3. NAT rules on router:$(NC)"
+	@echo "   $ docker exec router iptables -t nat -L POSTROUTING -v -n"
 	@docker exec router iptables -t nat -L POSTROUTING -v -n
 	@echo ""
 	@echo "$(CYAN)4. Connection tracking:$(NC)"
+	@echo "   $ docker exec router cat /proc/net/nf_conntrack | head -n 5"
 	@docker exec router cat /proc/net/nf_conntrack | head -n 5
 	@echo ""
-	@echo "$(GREEN)✅ NAT is masquerading internal IPs!$(NC)"
+	@echo "$(GREEN)NAT is masquerading internal IPs!$(NC)"
 
 demo-firewall: ## Demonstrate firewall rules
 	@echo "=================================================="
-	@echo "$(GREEN)🔥 FIREWALL DEMO$(NC)"
+	@echo "$(GREEN)FIREWALL DEMO$(NC)"
 	@echo "=================================================="
 	@echo ""
 	@echo "$(CYAN)1. Current firewall rules:$(NC)"
+	@echo "   $ docker exec router iptables -L FORWARD -v -n --line-numbers"
 	@docker exec router iptables -L FORWARD -v -n --line-numbers
 	@echo ""
 	@echo "$(CYAN)2. Block VLAN20 -> Nginx HTTPS (port 443):$(NC)"
+	@echo "   $ docker exec router iptables -I FORWARD 1 -s 10.20.20.0/24 -d 10.10.10.10 -p tcp --dport 443 -j REJECT"
 	@docker exec router iptables -I FORWARD 1 -s 10.20.20.0/24 -d 10.10.10.10 -p tcp --dport 443 -j REJECT
-	@echo "$(RED)✗ Rule added - VLAN20 cannot reach nginx:443$(NC)"
+	@echo "$(RED)Rule added - VLAN20 cannot reach nginx:443$(NC)"
 	@echo ""
 	@echo "$(CYAN)3. Test from VLAN20 (should fail):$(NC)"
+	@echo "   $ docker exec client20 timeout 3 curl -k https://10.10.10.10"
 	@docker exec client20 timeout 3 curl -k https://10.10.10.10 2>&1 || echo "$(RED)Connection rejected as expected$(NC)"
 	@echo ""
 	@echo "$(CYAN)4. Remove blocking rule:$(NC)"
+	@echo "   $ docker exec router iptables -D FORWARD 1"
 	@docker exec router iptables -D FORWARD 1
-	@echo "$(GREEN)✓ Rule removed - access restored$(NC)"
+	@echo "$(GREEN)Rule removed - access restored$(NC)"
 	@echo ""
 	@echo "$(CYAN)5. Test from VLAN20 (should work):$(NC)"
+	@echo "   $ docker exec client20 curl -k https://10.10.10.10 | head -n 5"
 	@docker exec client20 curl -k https://10.10.10.10 2>/dev/null | head -n 5
 	@echo ""
-	@echo "$(GREEN)✅ Firewall rules are dynamic and effective!$(NC)"
+	@echo "$(GREEN)Firewall rules are dynamic and effective!$(NC)"
 
 demo-all: ## Run all demos in sequence
 	@make demo-ping
@@ -251,7 +279,7 @@ demo-all: ## Run all demos in sequence
 	@make demo-firewall
 	@echo ""
 	@echo "=================================================="
-	@echo "$(GREEN)✅ ALL DEMOS COMPLETE!$(NC)"
+	@echo "$(GREEN)ALL DEMOS COMPLETE!$(NC)"
 	@echo "=================================================="
 
 # ============================================
@@ -272,7 +300,7 @@ scan-nginx: ## Port scan nginx server
 
 tcpdump-router: ## Capture packets on router
 	@echo "$(CYAN)Capturing packets on router (press Ctrl+C to stop)...$(NC)"
-	@docker exec -it router tcpdump -i any -n -v
+	@docker exec -it router tcpdump -i any -n -v 'icmp or port 443 or port 53'
 
 # ============================================
 # MAINTENANCE

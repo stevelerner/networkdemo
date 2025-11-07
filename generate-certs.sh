@@ -5,7 +5,7 @@ CERT_DIR="./nginx/certs"
 DOMAIN="app.demo.local"
 
 echo "=================================================="
-echo "🔐 SSL Certificate Generator"
+echo "SSL Certificate Generator"
 echo "=================================================="
 echo ""
 
@@ -14,7 +14,7 @@ mkdir -p "$CERT_DIR"
 
 # Check if mkcert is available
 if command -v mkcert &> /dev/null; then
-    echo "✓ mkcert found - generating trusted certificate..."
+    echo "mkcert found - generating trusted certificate..."
     echo ""
     
     # Install local CA if not already done
@@ -27,14 +27,14 @@ if command -v mkcert &> /dev/null; then
            "*.demo.local"
     
     echo ""
-    echo "✅ Certificate generated using mkcert (trusted by your system)"
+    echo "Certificate generated using mkcert (trusted by your system)"
     echo "   Certificate: $CERT_DIR/${DOMAIN}.crt"
     echo "   Private Key: $CERT_DIR/${DOMAIN}.key"
     echo ""
-    echo "💡 Your browser will trust this certificate!"
+    echo "Your browser will trust this certificate!"
     
 else
-    echo "⚠️  mkcert not found - generating self-signed certificate..."
+    echo "WARNING: mkcert not found - generating self-signed certificate..."
     echo ""
     echo "To install mkcert for trusted certificates:"
     echo "  brew install mkcert"
@@ -48,11 +48,11 @@ else
         -addext "subjectAltName=DNS:${DOMAIN},DNS:*.demo.local" \
         2>/dev/null
     
-    echo "✅ Self-signed certificate generated"
+    echo "Self-signed certificate generated"
     echo "   Certificate: $CERT_DIR/${DOMAIN}.crt"
     echo "   Private Key: $CERT_DIR/${DOMAIN}.key"
     echo ""
-    echo "⚠️  Browsers will show a security warning for self-signed certs."
+    echo "WARNING: Browsers will show a security warning for self-signed certs."
     echo "   Use '-k' flag with curl or accept the browser warning."
 fi
 
@@ -63,5 +63,5 @@ echo "=================================================="
 openssl x509 -in "$CERT_DIR/${DOMAIN}.crt" -noout -subject -issuer -dates
 
 echo ""
-echo "✅ Done! You can now run: docker compose up -d"
+echo "Done! You can now run: docker compose up -d"
 

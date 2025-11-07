@@ -8,54 +8,54 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 echo -e "${CYAN}=================================================="
-echo "🚀 Network Demo - Quick Start"
+echo "Network Demo - Quick Start"
 echo -e "==================================================${NC}"
 echo ""
 
 # Check if Docker is running
 if ! docker info > /dev/null 2>&1; then
-    echo -e "${RED}❌ Docker is not running. Please start Docker Desktop and try again.${NC}"
+    echo -e "${RED}ERROR: Docker is not running. Please start Docker Desktop and try again.${NC}"
     exit 1
 fi
 
-echo -e "${GREEN}✓ Docker is running${NC}"
+echo -e "${GREEN}Docker is running${NC}"
 echo ""
 
 # Check if certificates exist
 if [ ! -f "./nginx/certs/app.demo.local.crt" ]; then
-    echo -e "${YELLOW}📜 Generating SSL certificates...${NC}"
+    echo -e "${YELLOW}Generating SSL certificates...${NC}"
     chmod +x generate-certs.sh
     ./generate-certs.sh
     echo ""
 else
-    echo -e "${GREEN}✓ SSL certificates already exist${NC}"
+    echo -e "${GREEN}SSL certificates already exist${NC}"
     echo ""
 fi
 
 # Build and start containers
-echo -e "${CYAN}🔨 Building Docker images...${NC}"
+echo -e "${CYAN}Building Docker images...${NC}"
 docker compose build --quiet
 
 echo ""
-echo -e "${CYAN}🚀 Starting containers...${NC}"
+echo -e "${CYAN}Starting containers...${NC}"
 docker compose up -d
 
 echo ""
-echo -e "${GREEN}✅ All containers started!${NC}"
+echo -e "${GREEN}All containers started!${NC}"
 echo ""
 
 # Wait a few seconds for services to initialize
-echo -e "${CYAN}⏳ Waiting for services to initialize...${NC}"
+echo -e "${CYAN}Waiting for services to initialize...${NC}"
 sleep 5
 
 # Show status
 echo ""
-echo -e "${CYAN}📊 Container Status:${NC}"
+echo -e "${CYAN}Container Status:${NC}"
 docker compose ps
 
 echo ""
 echo -e "${GREEN}=================================================="
-echo "✅ Setup Complete!"
+echo "Setup Complete!"
 echo -e "==================================================${NC}"
 echo ""
 echo "Try these commands:"
@@ -69,5 +69,5 @@ echo ""
 echo -e "  ${CYAN}make shell-client10${NC} - Open shell in VLAN10 client"
 echo -e "  ${CYAN}make monitor${NC}        - Watch live network traffic"
 echo ""
-echo -e "${GREEN}Happy networking! 🎉${NC}"
+echo -e "${GREEN}Happy networking!${NC}"
 
