@@ -11,13 +11,13 @@ echo 1 > /proc/sys/net/ipv4/ip_forward
 
 # Detect interfaces by IP address
 echo "✓ Detecting network interfaces..."
-VLAN10_IF=$(ip -o addr show | grep "10.10.10.1" | awk '{print $2}' | head -n1)
-VLAN20_IF=$(ip -o addr show | grep "10.20.20.1" | awk '{print $2}' | head -n1)
-WAN_IF=$(ip -o addr show | grep "172.20.0.1" | awk '{print $2}' | head -n1)
+VLAN10_IF=$(ip -o addr show | grep "10.10.10.254" | awk '{print $2}' | head -n1)
+VLAN20_IF=$(ip -o addr show | grep "10.20.20.254" | awk '{print $2}' | head -n1)
+WAN_IF=$(ip -o addr show | grep "172.20.0.254" | awk '{print $2}' | head -n1)
 
-echo "  VLAN10: $VLAN10_IF (10.10.10.1)"
-echo "  VLAN20: $VLAN20_IF (10.20.20.1)"
-echo "  WAN:    $WAN_IF (172.20.0.1)"
+echo "  VLAN10: $VLAN10_IF (10.10.10.254)"
+echo "  VLAN20: $VLAN20_IF (10.20.20.254)"
+echo "  WAN:    $WAN_IF (172.20.0.254)"
 
 # Verify interfaces exist
 if [[ -z "$VLAN10_IF" ]] || [[ -z "$VLAN20_IF" ]] || [[ -z "$WAN_IF" ]]; then

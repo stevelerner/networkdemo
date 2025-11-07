@@ -6,7 +6,6 @@ networks:
     ipam:
       config:
         - subnet: 10.10.10.0/24
-          gateway: 10.10.10.1
     driver_opts:
       com.docker.network.bridge.name: br-vlan10
 
@@ -15,7 +14,6 @@ networks:
     ipam:
       config:
         - subnet: 10.20.20.0/24
-          gateway: 10.20.20.1
     driver_opts:
       com.docker.network.bridge.name: br-vlan20
 
@@ -24,7 +22,6 @@ networks:
     ipam:
       config:
         - subnet: 172.20.0.0/24
-          gateway: 172.20.0.1
     driver_opts:
       com.docker.network.bridge.name: br-wan
 
@@ -40,11 +37,11 @@ services:
       - NET_ADMIN
     networks:
       vlan10:
-        ipv4_address: 10.10.10.1
+        ipv4_address: 10.10.10.254
       vlan20:
-        ipv4_address: 10.20.20.1
+        ipv4_address: 10.20.20.254
       wan:
-        ipv4_address: 172.20.0.1
+        ipv4_address: 172.20.0.254
     environment:
       - VLAN10_SUBNET=10.10.10.0/24
       - VLAN20_SUBNET=10.20.20.0/24

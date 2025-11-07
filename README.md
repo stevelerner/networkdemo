@@ -42,7 +42,7 @@ A comprehensive, self-contained Docker-based demonstration of enterprise network
 │                                                              │
 │  ┌──────────────┐                    ┌──────────────┐       │
 │  │  Router      │                    │  WAN Host    │       │
-│  │ 172.20.0.1   │◄──────NAT──────────│ 172.20.0.100 │       │
+│  │ 172.20.0.254 │◄──────NAT──────────│ 172.20.0.100 │       │
 │  └──────┬───────┘                    └──────────────┘       │
 └─────────┼────────────────────────────────────────────────────┘
           │
@@ -160,7 +160,7 @@ make demo-routing
 ```
 
 **Talking points:**
-> The router container has interfaces in all three networks. Kernel IP forwarding (`net.ipv4.ip_forward=1`) is enabled and iptables rules are configured to allow inter-VLAN traffic. Traceroute shows the hop through the router at `10.10.10.1` when reaching VLAN20 from VLAN10.
+> The router container has interfaces in all three networks. Kernel IP forwarding (`net.ipv4.ip_forward=1`) is enabled and iptables rules are configured to allow inter-VLAN traffic. Traceroute shows the hop through the router at `10.10.10.254` when reaching VLAN20 from VLAN10.
 
 **Technical details:**
 - Router uses dynamic interface detection (not hardcoded)
@@ -179,7 +179,7 @@ make demo-dhcp
 
 **Technical details:**
 - DHCP scope: `10.20.20.100-200`
-- Gateway option: `10.20.20.1` (router)
+- Gateway option: `10.20.20.254` (router)
 - DNS option: `10.20.20.53` (CoreDNS)
 - 12-hour lease time
 
@@ -190,7 +190,7 @@ make demo-nat
 ```
 
 **Talking points:**
-> The router performs source NAT (MASQUERADE) for any traffic leaving to the WAN network. Internal clients appear as `172.20.0.1` when accessing external hosts. This is how enterprise networks share a single public IP among many private hosts.
+> The router performs source NAT (MASQUERADE) for any traffic leaving to the WAN network. Internal clients appear as `172.20.0.254` when accessing external hosts. This is how enterprise networks share a single public IP among many private hosts.
 
 **Technical details:**
 - `iptables -t nat -A POSTROUTING -o wan_if -j MASQUERADE`

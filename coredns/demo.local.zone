@@ -18,7 +18,7 @@ ns1     IN A    10.10.10.53
 app     IN A    10.10.10.10
 
 ; Router
-router  IN A    10.10.10.1
+router  IN A    10.10.10.254
 
 ; DHCP server
 dhcp    IN A    10.20.20.2
