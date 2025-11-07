@@ -84,7 +84,7 @@ A comprehensive, self-contained Docker-based demonstration of enterprise network
 
 ### Prerequisites
 
-- Docker Desktop for Mac (or Docker + Docker Compose on Linux)
+- Docker Desktop for Mac
 - `make` (included on macOS)
 - Optional: `mkcert` for trusted local certificates
 
@@ -356,7 +356,7 @@ docker exec router iptables -F FORWARD
 ```bash
 brew install mkcert
 mkcert -install
-make clean
+make clean-all
 make certs
 make up
 ```
@@ -419,8 +419,8 @@ docker compose logs coredns
 docker compose logs router
 
 # Rebuild from scratch
-make clean
-make build
+make clean-all
+make certs
 make up
 ```
 
@@ -458,6 +458,8 @@ make down           # Stop all containers
 make status         # Show container status
 make logs           # View all logs
 make monitor        # Watch live traffic
+make clean          # Remove containers, networks, volumes
+make clean-all      # Remove everything including images and certs
 
 # Demos
 make demo-dns       # DNS resolution demo

@@ -62,6 +62,14 @@ clean: ## Remove all containers, networks, and volumes
 	@docker network prune -f
 	@echo "$(GREEN)✅ Cleanup complete$(NC)"
 
+clean-all: ## Remove everything including images and certificates
+	@echo "$(RED)⚠️  FULL CLEANUP - Removing all artifacts...$(NC)"
+	@docker compose down -v --rmi all
+	@docker network prune -f
+	@echo "Removing SSL certificates..."
+	@rm -rf nginx/certs/*.crt nginx/certs/*.key nginx/certs/*.pem 2>/dev/null || true
+	@echo "$(GREEN)✅ Full cleanup complete - all artifacts removed$(NC)"
+
 monitor: ## Show live traffic monitoring
 	@echo "$(CYAN)Monitoring network traffic...$(NC)"
 	@echo "Press Ctrl+C to stop"

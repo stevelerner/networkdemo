@@ -160,7 +160,6 @@ services:
   monitor:
     build: ./router
     container_name: monitor
-    hostname: monitor
     cap_add:
       - NET_ADMIN
     network_mode: "service:router"

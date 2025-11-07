@@ -37,8 +37,7 @@ else
     echo "⚠️  mkcert not found - generating self-signed certificate..."
     echo ""
     echo "To install mkcert for trusted certificates:"
-    echo "  macOS:   brew install mkcert"
-    echo "  Linux:   https://github.com/FiloSottile/mkcert"
+    echo "  brew install mkcert"
     echo ""
     
     # Generate self-signed certificate
