@@ -110,6 +110,13 @@ services:
     build: ./clients
     container_name: client10
     hostname: client10
+    command: >
+      sh -c "
+      ip route del default &&
+      ip route add default via 10.10.10.254 &&
+      /etc/profile.d/motd.sh &&
+      tail -f /dev/null
+      "
     networks:
       vlan10:
         ipv4_address: 10.10.10.100
@@ -134,6 +141,7 @@ services:
       sh -c "
       echo 'Waiting for DHCP server...' &&
       sleep 3 &&
+      ip route del default 2>/dev/null || true &&
       udhcpc -i eth0 -f -q &&
       echo 'DHCP lease obtained!' &&
       ip addr show eth0 &&
