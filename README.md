@@ -122,6 +122,59 @@ make demo-all
 
 ---
 
+## Demo Guide
+
+### Running Demos
+
+Each demo can be run individually using the Makefile commands. The demos are designed to showcase specific networking concepts and can be customized based on your needs.
+
+**Quick demo sequence (5-10 minutes):**
+```bash
+make demo-ping      # Basic connectivity
+make demo-dns       # DNS resolution
+make demo-https     # Secure web access
+make demo-firewall  # Dynamic firewall rules
+```
+
+**Full demo sequence (15-20 minutes):**
+```bash
+make demo-all       # Runs all demos in order
+```
+
+### Failure Scenario Testing
+
+To demonstrate resilience and troubleshooting:
+
+```bash
+# Stop the router
+docker stop router
+
+# Test connectivity (will fail)
+docker exec client10 ping -c2 10.20.20.53
+
+# Restart router
+docker start router
+sleep 3
+
+# Test again (should work)
+docker exec client10 ping -c2 10.20.20.53
+```
+
+### Emergency Commands
+
+If something goes wrong:
+
+```bash
+make restart        # Restart all containers
+make status         # Check container health
+make logs           # View all logs
+docker logs router  # View specific service logs
+make shell-client10 # Debug interactively
+make clean && make up  # Full restart
+```
+
+---
+
 ## Demo Scripts
 
 ### 1. DNS Resolution Demo
@@ -249,19 +302,38 @@ make demo-firewall
 | dnsmasq DHCP | ISC DHCP, Windows DHCP, Infoblox |
 | Nginx HTTPS | Load balancers (F5, HAProxy, ALB) |
 
-### Common Interview Questions & Answers
+### Common Questions & Answers
 
 **Q: How does the router know which interface leads to which VLAN?**
-> Interfaces are detected dynamically by IP address using `ip -o addr show | grep` rather than hardcoding eth0/eth1. In production, interface names or VLAN tags would be used.
+> Docker assigns interfaces predictably (eth0, eth1, eth2) based on the order networks are attached in docker-compose.yml. The router uses simple interface detection. In production, VLAN tags (802.1Q) or interface names would be used.
 
 **Q: What happens if the router fails?**
 > In this demo, it's a single point of failure. In production, VRRP (Virtual Router Redundancy Protocol) can be deployed with two routers sharing a virtual IP. If the primary fails, the secondary takes over within seconds.
 
-**Q: How do you secure DNS?**
-> This demo uses plain DNS. For security, DNSSEC can be implemented for zone signing, DNS-over-TLS/HTTPS for query encryption, and rate limiting to prevent amplification attacks.
+**Q: How would you secure this further?**
+> - Add mutual TLS (client certificates)
+> - Implement DNSSEC for zone signing
+> - Use DNS-over-TLS/HTTPS for query encryption
+> - Add IDS/IPS (Suricata)
+> - Implement VPN tunnels between VLANs
+> - Deploy zero-trust network access
 
-**Q: Can you show me the firewall blocking something?**
-> Yes, VLAN20 can be blocked from reaching the HTTPS server on port 443.
+**Q: How would you scale this?**
+> - Replace single router with HA pair (VRRP/HSRP)
+> - Add dynamic routing (OSPF/BGP)
+> - Use IPAM for address management
+> - Deploy load balancers for web tier
+> - Implement service mesh (Istio)
+> - Add centralized logging and monitoring
+
+**Q: What's different in production?**
+> - Real switches with 802.1Q VLAN tagging
+> - Layer 3 switches or enterprise routers (Cisco, Juniper)
+> - Hardware load balancers (F5, Citrix, Palo Alto)
+> - Cloud equivalents (AWS VPC, Azure VNet, GCP VPC)
+> - Centralized management (Cisco DNA, Meraki, Ansible)
+
+**Q: Can you demonstrate firewall blocking?**
 ```bash
 make demo-firewall
 ```
@@ -499,17 +571,29 @@ Found a bug or have an improvement? Feel free to:
 
 ---
 
-## Tips for Your Interview
+## Additional Demo Commands
 
-1. **Practice the demos** before the interview—know exactly what each command will output
-2. **Be ready to explain** why you made specific choices (e.g., CoreDNS vs BIND)
-3. **Show depth** by discussing how you'd scale this in production
-4. **Troubleshoot live** if something breaks—that's impressive too
-5. **Connect to real systems** by mentioning Cisco, AWS, or other tools they might use
+### Inspect Zone Files
+```bash
+cat coredns/demo.local.zone      # View DNS records
+cat dnsmasq/dnsmasq.conf         # View DHCP configuration
+cat nginx/default.conf           # View Nginx configuration
+```
+
+### Show Certificate Details
+```bash
+docker exec client10 sh -c "echo | openssl s_client -connect 10.10.10.10:443 2>/dev/null | openssl x509 -noout -text | grep -A2 'Subject:'"
+```
+
+### Monitor Live Traffic
+```bash
+make monitor                     # Watch packets in real-time
+make tcpdump-router              # Detailed packet capture
+```
 
 ---
 
-**Good luck!**
+## Notes
 
-If you have questions or want to discuss networking concepts, feel free to reach out.
+This demo is designed for educational purposes and technical presentations. It showcases core networking concepts in a portable, reproducible environment using Docker.
 

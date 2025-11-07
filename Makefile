@@ -35,7 +35,7 @@ up: ## Start all containers
 	@echo "$(GREEN)Starting network demo...$(NC)"
 	@docker compose up -d
 	@echo ""
-	@echo "$(GREEN)✅ All containers started!$(NC)"
+	@echo "$(GREEN) All containers started!$(NC)"
 	@make status
 
 down: ## Stop and remove all containers
@@ -60,7 +60,7 @@ clean: ## Remove all containers, networks, and volumes
 	@echo "$(RED)Cleaning up everything...$(NC)"
 	@docker compose down -v --remove-orphans
 	@docker network prune -f
-	@echo "$(GREEN)✅ Cleanup complete$(NC)"
+	@echo "$(GREEN) Cleanup complete$(NC)"
 
 clean-all: ## Remove everything including images and certificates
 	@echo "$(RED)⚠️  FULL CLEANUP - Removing all artifacts...$(NC)"
@@ -68,7 +68,7 @@ clean-all: ## Remove everything including images and certificates
 	@docker network prune -f
 	@echo "Removing SSL certificates..."
 	@rm -rf nginx/certs/*.crt nginx/certs/*.key nginx/certs/*.pem 2>/dev/null || true
-	@echo "$(GREEN)✅ Full cleanup complete - all artifacts removed$(NC)"
+	@echo "$(GREEN) Full cleanup complete - all artifacts removed$(NC)"
 
 force-clean: ## Force remove everything (use if stuck)
 	@echo "$(RED)⚠️⚠️⚠️  FORCE CLEANUP - Nuclear option ⚠️⚠️⚠️$(NC)"
@@ -322,5 +322,5 @@ health: ## Check health of all services
 	@echo "Router:"
 	@docker exec router ip route show | head -n 3
 	@echo ""
-	@echo "$(GREEN)✅ Health check complete$(NC)"
+	@echo "$(GREEN) Health check complete$(NC)"
 
