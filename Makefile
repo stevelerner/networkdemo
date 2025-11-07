@@ -58,17 +58,22 @@ status: ## Show status of all containers
 
 clean: ## Remove all containers, networks, and volumes
 	@echo "$(RED)Cleaning up everything...$(NC)"
-	@docker compose down -v
+	@docker compose down -v --remove-orphans
 	@docker network prune -f
 	@echo "$(GREEN)✅ Cleanup complete$(NC)"
 
 clean-all: ## Remove everything including images and certificates
 	@echo "$(RED)⚠️  FULL CLEANUP - Removing all artifacts...$(NC)"
-	@docker compose down -v --rmi all
+	@docker compose down -v --rmi all --remove-orphans
 	@docker network prune -f
 	@echo "Removing SSL certificates..."
 	@rm -rf nginx/certs/*.crt nginx/certs/*.key nginx/certs/*.pem 2>/dev/null || true
 	@echo "$(GREEN)✅ Full cleanup complete - all artifacts removed$(NC)"
+
+force-clean: ## Force remove everything (use if stuck)
+	@echo "$(RED)⚠️⚠️⚠️  FORCE CLEANUP - Nuclear option ⚠️⚠️⚠️$(NC)"
+	@chmod +x force-clean.sh
+	@./force-clean.sh
 
 monitor: ## Show live traffic monitoring
 	@echo "$(CYAN)Monitoring network traffic...$(NC)"
