@@ -1,0 +1,26 @@
+# SSL Certificates
+nginx/certs/*.crt
+nginx/certs/*.key
+nginx/certs/*.pem
+
+# Docker
+.docker/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.bak
+
