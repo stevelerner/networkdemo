@@ -1,0 +1,14 @@
+.:53 {
+    log
+    errors
+    
+    # Serve our custom zone
+    file /zones/demo.local demo.local
+    
+    # Forward everything else to public DNS
+    forward . 8.8.8.8 8.8.4.4
+    
+    cache 30
+    reload 10s
+}
+

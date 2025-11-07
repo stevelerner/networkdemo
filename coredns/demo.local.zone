@@ -1,0 +1,28 @@
+$ORIGIN demo.local.
+$TTL 3600
+
+@       IN SOA  ns1.demo.local. admin.demo.local. (
+                2024110701  ; Serial
+                7200        ; Refresh
+                3600        ; Retry
+                1209600     ; Expire
+                3600 )      ; Negative TTL
+
+; Name servers
+@       IN NS   ns1.demo.local.
+
+; DNS server itself
+ns1     IN A    10.10.10.53
+
+; Application server
+app     IN A    10.10.10.10
+
+; Router
+router  IN A    10.10.10.1
+
+; DHCP server
+dhcp    IN A    10.20.20.2
+
+; Clients
+client10 IN A   10.10.10.100
+

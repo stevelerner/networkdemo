@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Demo App - VLAN10</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 600px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .emoji {
+            font-size: 4rem;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin: 5px;
+            font-weight: 500;
+        }
+        .badges {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .info {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        .info-line {
+            margin: 8px 0;
+        }
+        .label {
+            color: #ffd700;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="emoji">🔒</div>
+        <h1>Secure Demo App</h1>
+        <p>You've successfully reached the HTTPS application running on VLAN10!</p>
+        
+        <div class="badges">
+            <span class="badge">✓ TLS Encrypted</span>
+            <span class="badge">✓ DNS Resolved</span>
+            <span class="badge">✓ Inter-VLAN Routing</span>
+            <span class="badge">✓ Firewall Protected</span>
+        </div>
+
+        <div class="info">
+            <div class="info-line"><span class="label">Service:</span> app.demo.local</div>
+            <div class="info-line"><span class="label">IP Address:</span> 10.10.10.10</div>
+            <div class="info-line"><span class="label">Network:</span> VLAN10 (10.10.10.0/24)</div>
+            <div class="info-line"><span class="label">Protocol:</span> HTTPS/TLS</div>
+            <div class="info-line"><span class="label">Server:</span> Nginx</div>
+        </div>
+
+        <p style="margin-top: 30px; font-size: 0.9rem; opacity: 0.8;">
+            This is a demonstration of network segmentation, routing, DNS resolution, and secure HTTPS communication.
+        </p>
+    </div>
+</body>
+</html>
+

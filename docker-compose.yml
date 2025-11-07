@@ -1,0 +1,193 @@
+version: "3.9"
+
+networks:
+  vlan10:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.10.10.0/24
+          gateway: 10.10.10.1
+    driver_opts:
+      com.docker.network.bridge.name: br-vlan10
+
+  vlan20:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.20.20.0/24
+          gateway: 10.20.20.1
+    driver_opts:
+      com.docker.network.bridge.name: br-vlan20
+
+  wan:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
+          gateway: 172.20.0.1
+    driver_opts:
+      com.docker.network.bridge.name: br-wan
+
+services:
+  # ============================================
+  # ROUTER: Handles inter-VLAN routing + NAT + Firewall
+  # ============================================
+  router:
+    build: ./router
+    container_name: router
+    hostname: router
+    cap_add:
+      - NET_ADMIN
+    networks:
+      vlan10:
+        ipv4_address: 10.10.10.1
+      vlan20:
+        ipv4_address: 10.20.20.1
+      wan:
+        ipv4_address: 172.20.0.1
+    environment:
+      - VLAN10_SUBNET=10.10.10.0/24
+      - VLAN20_SUBNET=10.20.20.0/24
+      - WAN_SUBNET=172.20.0.0/24
+    restart: unless-stopped
+
+  # ============================================
+  # DNS: CoreDNS serving demo.local zone
+  # ============================================
+  coredns:
+    image: coredns/coredns:1.11.1
+    container_name: coredns
+    hostname: coredns
+    command: ["-conf", "/etc/coredns/Corefile"]
+    volumes:
+      - ./coredns/Corefile:/etc/coredns/Corefile:ro
+      - ./coredns/demo.local.zone:/zones/demo.local:ro
+    networks:
+      vlan10:
+        ipv4_address: 10.10.10.53
+      vlan20:
+        ipv4_address: 10.20.20.53
+    restart: unless-stopped
+
+  # ============================================
+  # DHCP: dnsmasq for VLAN20
+  # ============================================
+  dnsmasq:
+    image: alpine:3.20
+    container_name: dnsmasq
+    hostname: dnsmasq
+    cap_add:
+      - NET_ADMIN
+    command: >
+      sh -c "apk add --no-cache dnsmasq &&
+             dnsmasq -d -C /etc/dnsmasq.conf"
+    volumes:
+      - ./dnsmasq/dnsmasq.conf:/etc/dnsmasq.conf:ro
+    networks:
+      vlan20:
+        ipv4_address: 10.20.20.2
+    restart: unless-stopped
+
+  # ============================================
+  # APP: Nginx with HTTPS
+  # ============================================
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: nginx-app
+    hostname: app
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+      - ./nginx/html:/usr/share/nginx/html:ro
+    networks:
+      vlan10:
+        ipv4_address: 10.10.10.10
+    depends_on:
+      - coredns
+    restart: unless-stopped
+
+  # ============================================
+  # CLIENT10: Static IP client on VLAN10
+  # ============================================
+  client10:
+    build: ./clients
+    container_name: client10
+    hostname: client10
+    networks:
+      vlan10:
+        ipv4_address: 10.10.10.100
+    dns:
+      - 10.10.10.53
+    dns_search:
+      - demo.local
+    extra_hosts:
+      - "app.demo.local:10.10.10.10"
+    cap_add:
+      - NET_ADMIN
+    restart: unless-stopped
+
+  # ============================================
+  # CLIENT20: DHCP client on VLAN20
+  # ============================================
+  client20:
+    build: ./clients
+    container_name: client20
+    hostname: client20
+    command: >
+      sh -c "
+      echo 'Waiting for DHCP server...' &&
+      sleep 3 &&
+      udhcpc -i eth0 -f -q &&
+      echo 'DHCP lease obtained!' &&
+      ip addr show eth0 &&
+      ip route show &&
+      tail -f /dev/null
+      "
+    networks:
+      vlan20: {}
+    dns_search:
+      - demo.local
+    cap_add:
+      - NET_ADMIN
+    depends_on:
+      - dnsmasq
+      - coredns
+    restart: unless-stopped
+
+  # ============================================
+  # MONITOR: Traffic monitoring container
+  # ============================================
+  monitor:
+    build: ./router
+    container_name: monitor
+    hostname: monitor
+    cap_add:
+      - NET_ADMIN
+    network_mode: "service:router"
+    command: >
+      sh -c "
+      echo '=== Network Traffic Monitor ===' &&
+      echo 'Watching inter-VLAN traffic...' &&
+      tcpdump -i any -n -l 'icmp or port 443 or port 53 or port 67' 2>/dev/null
+      "
+    depends_on:
+      - router
+    restart: unless-stopped
+
+  # ============================================
+  # WAN_HOST: Simulated external host
+  # ============================================
+  wan_host:
+    image: alpine:3.20
+    container_name: wan-host
+    hostname: wan-host
+    command: >
+      sh -c "apk add --no-cache python3 &&
+             echo 'Hello from WAN!' > /tmp/index.html &&
+             echo 'Starting HTTP server on port 8080...' &&
+             python3 -m http.server 8080 --directory /tmp"
+    networks:
+      wan:
+        ipv4_address: 172.20.0.100
+    restart: unless-stopped
+
