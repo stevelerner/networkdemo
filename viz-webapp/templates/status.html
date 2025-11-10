@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Container Status Dashboard</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body class="status-page">
+    <div class="container">
+        <header>
+            <div>
+                <h1>Container Status Dashboard</h1>
+                <p class="subheading">Live view of demo containers pulled directly from Docker.</p>
+            </div>
+            <nav class="nav-links">
+                <a href="/" class="nav-link">↩ Back to Network Visualization</a>
+            </nav>
+        </header>
+
+        <main class="status-main">
+            <section class="panel status-panel">
+                <div class="refresh-meta">
+                    <span>Auto-refreshing every 3 seconds</span>
+                    <span id="last-updated">Last updated: --</span>
+                </div>
+                <div class="table-wrapper">
+                    <table class="status-table">
+                        <thead>
+                            <tr>
+                                <th>Container</th>
+                                <th>Status</th>
+                                <th>RX Bytes</th>
+                                <th>TX Bytes</th>
+                                <th>RX Packets</th>
+                                <th>TX Packets</th>
+                            </tr>
+                        </thead>
+                        <tbody id="status-body">
+                            <tr>
+                                <td colspan="6" class="loading">Loading container data...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/static/status.js"></script>
+</body>
+</html>

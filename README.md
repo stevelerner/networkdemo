@@ -174,9 +174,12 @@ make up
 
 # Open visualization in your browser
 make viz
+
+# Open container status dashboard in your browser
+open http://localhost:8080/status
 ```
 
-Or manually visit: **http://localhost:8080**
+Or manually visit: **http://localhost:8080** for the topology view and **http://localhost:8080/status** for the container status dashboard.
 
 ### Features
 

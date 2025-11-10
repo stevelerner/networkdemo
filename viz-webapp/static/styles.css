@@ -12,6 +12,12 @@ body {
     overflow: hidden;
 }
 
+body.status-page {
+    overflow: auto;
+    height: auto;
+    min-height: 100vh;
+}
+
 .container {
     display: flex;
     flex-direction: column;
@@ -283,5 +289,132 @@ h1 {
 
 ::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.3);
+}
+
+.status-main {
+    flex: 1;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+}
+
+.status-panel {
+    width: 100%;
+    max-width: 1000px;
+}
+
+.table-wrapper {
+    margin-top: 20px;
+    background: rgba(0, 0, 0, 0.25);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    overflow: hidden;
+}
+
+.status-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.status-table th,
+.status-table td {
+    padding: 14px;
+    text-align: left;
+}
+
+.status-table thead {
+    background: rgba(255, 255, 255, 0.08);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.status-table tbody tr:nth-child(odd) {
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.status-table tbody tr:nth-child(even) {
+    background: rgba(0, 0, 0, 0.15);
+}
+
+.status-chip {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+}
+
+.status-chip.running {
+    background: rgba(74, 222, 128, 0.15);
+    color: #4ade80;
+    border: 1px solid rgba(74, 222, 128, 0.4);
+}
+
+.status-chip.error {
+    background: rgba(239, 68, 68, 0.15);
+    color: #f97373;
+    border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.status-error {
+    margin-top: 6px;
+    font-size: 0.7rem;
+    color: #fda4af;
+    max-width: 320px;
+    word-break: break-word;
+}
+
+.refresh-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: #cbd5e1;
+}
+
+.loading,
+.error {
+    text-align: center;
+    padding: 30px 0;
+    font-size: 0.9rem;
+}
+
+.error {
+    color: #fca5a5;
+}
+
+.nav-links {
+    display: flex;
+    gap: 12px;
+}
+
+.nav-link {
+    color: #93c5fd;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.nav-link:hover {
+    text-decoration: underline;
+}
+
+.subheading {
+    margin-top: 6px;
+    font-size: 0.9rem;
+    color: #cbd5e1;
+}
+
+.name-cell {
+    font-weight: 600;
+    color: #f8fafc;
 }
 

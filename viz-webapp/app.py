@@ -128,6 +128,11 @@ def index():
     """Serve the main visualization page"""
     return render_template('index.html')
 
+@app.route('/status')
+def status_page():
+    """Serve the container status dashboard"""
+    return render_template('status.html')
+
 @app.route('/api/topology')
 def get_topology():
     """Return network topology"""
