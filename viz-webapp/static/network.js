@@ -1,17 +1,18 @@
 // Network Visualization using D3.js
+// Simplified version with fixed layout (no force simulation)
 
 const socket = io();
 let topology = null;
-let simulation = null;
 let nodes = [];
 let links = [];
 let nodeElements = null;
 let linkElements = null;
+let svg, linkGroup, nodeGroup, width, height;
 
 // Color mapping for node types
 const nodeColors = {
     router: '#f59e0b',
-    switch: '#fbbf24',  // Golden/amber for Layer 2 switch
+    switch: '#fbbf24',
     dns: '#8b5cf6',
     web: '#10b981',
     client: '#3b82f6',
@@ -19,18 +20,45 @@ const nodeColors = {
     external: '#64748b'
 };
 
+// Fixed positions for each node (arranged in a logical network layout)
+const nodePositions = {
+    // WAN at top
+    'wan-host': { x: 0.25, y: 0.15 },
+    'wan-service': { x: 0.75, y: 0.15 },
+    
+    // Router in center
+    'router': { x: 0.5, y: 0.4 },
+    
+    // VLAN 10 (left side)
+    'coredns': { x: 0.15, y: 0.55 },
+    'nginx-app': { x: 0.15, y: 0.7 },
+    'client10': { x: 0.15, y: 0.85 },
+    
+    // VLAN 20 (center-right)
+    'dnsmasq': { x: 0.5, y: 0.65 },
+    'client20': { x: 0.5, y: 0.85 },
+    
+    // VLAN 30 (right side)
+    'switch': { x: 0.85, y: 0.55 },
+    'client30a': { x: 0.85, y: 0.7 },
+    'client30b': { x: 0.85, y: 0.85 }
+};
+
 // Initialize visualization
 function initVisualization() {
-    const svg = d3.select('#network-viz');
-    const width = svg.node().getBoundingClientRect().width;
-    const height = svg.node().getBoundingClientRect().height;
+    svg = d3.select('#network-viz');
+    width = svg.node().getBoundingClientRect().width;
+    height = svg.node().getBoundingClientRect().height;
 
     svg.attr('viewBox', [0, 0, width, height]);
 
+    // Clear existing content
+    svg.selectAll('*').remove();
+
     // Create groups for layers
-    const g = svg.append('g');
-    const linkGroup = g.append('g').attr('class', 'links');
-    const nodeGroup = g.append('g').attr('class', 'nodes');
+    const g = svg.append('g').attr('class', 'main-group');
+    linkGroup = g.append('g').attr('class', 'links');
+    nodeGroup = g.append('g').attr('class', 'nodes');
 
     // Setup zoom
     const zoom = d3.zoom()
@@ -40,51 +68,54 @@ function initVisualization() {
         });
 
     svg.call(zoom);
-
-    return { svg, linkGroup, nodeGroup, width, height };
 }
 
-// Create force simulation
-function createSimulation(nodes, links, width, height) {
-    return d3.forceSimulation(nodes)
-        .force('link', d3.forceLink(links).id(d => d.id).distance(200))
-        .force('charge', d3.forceManyBody().strength(-800))
-        .force('center', d3.forceCenter(width / 2, height / 2))
-        .force('collision', d3.forceCollide().radius(60))
-        .force('x', d3.forceX(width / 2).strength(0.05))
-        .force('y', d3.forceY(height / 2).strength(0.05));
+// Calculate actual pixel positions from relative positions
+function getNodePosition(nodeId) {
+    const pos = nodePositions[nodeId];
+    if (pos) {
+        return {
+            x: pos.x * width,
+            y: pos.y * height
+        };
+    }
+    // Fallback to center if not defined
+    return { x: width / 2, y: height / 2 };
 }
 
 // Update visualization with topology data
 function updateVisualization(data) {
     topology = data;
     
-    // Initialize visualization first to get width and height
-    const { svg, linkGroup, nodeGroup, width, height } = initVisualization();
+    // Initialize visualization
+    initVisualization();
     
-    // Create nodes array with better initial positioning
-    const nodeCount = data.nodes.length;
-    const angleStep = (2 * Math.PI) / nodeCount;
-    const radius = Math.min(width, height) * 0.3;
-    
-    nodes = data.nodes.map((n, i) => ({
-        ...n,
-        x: width / 2 + radius * Math.cos(i * angleStep),
-        y: height / 2 + radius * Math.sin(i * angleStep)
-    }));
+    // Create nodes array with fixed positions
+    nodes = data.nodes.map(n => {
+        const pos = getNodePosition(n.id);
+        return {
+            ...n,
+            x: pos.x,
+            y: pos.y
+        };
+    });
 
     // Create links array from network memberships
     links = [];
     data.networks.forEach(network => {
         const members = network.members;
-        // Connect all members in a network
         for (let i = 0; i < members.length; i++) {
             for (let j = i + 1; j < members.length; j++) {
-                links.push({
-                    source: members[i],
-                    target: members[j],
-                    network: network.id
-                });
+                // Find the actual node objects
+                const source = nodes.find(n => n.id === members[i]);
+                const target = nodes.find(n => n.id === members[j]);
+                if (source && target) {
+                    links.push({
+                        source: source,
+                        target: target,
+                        network: network.id
+                    });
+                }
             }
         }
     });
@@ -94,70 +125,76 @@ function updateVisualization(data) {
         .data(links)
         .join('line')
         .attr('class', 'link')
+        .attr('x1', d => d.source.x)
+        .attr('y1', d => d.source.y)
+        .attr('x2', d => d.target.x)
+        .attr('y2', d => d.target.y)
+        .attr('stroke-width', 2)
         .style('stroke', d => {
-            if (d.network === 'vlan10') return 'rgba(59, 130, 246, 0.3)';
-            if (d.network === 'vlan20') return 'rgba(236, 72, 153, 0.3)';
-            if (d.network === 'vlan30') return 'rgba(251, 191, 36, 0.3)';  // Golden for switched network
-            if (d.network === 'wan') return 'rgba(100, 116, 139, 0.3)';
+            if (d.network === 'vlan10') return 'rgba(59, 130, 246, 0.4)';
+            if (d.network === 'vlan20') return 'rgba(236, 72, 153, 0.4)';
+            if (d.network === 'vlan30') return 'rgba(251, 191, 36, 0.4)';
+            if (d.network === 'wan') return 'rgba(100, 116, 139, 0.4)';
             return 'rgba(255, 255, 255, 0.3)';
         });
 
     // Create nodes
-    const nodeGroup2 = nodeGroup.selectAll('.node')
+    nodeElements = nodeGroup.selectAll('.node')
         .data(nodes)
         .join('g')
         .attr('class', 'node')
+        .attr('transform', d => `translate(${d.x},${d.y})`)
         .call(d3.drag()
             .on('start', dragstarted)
             .on('drag', dragged)
             .on('end', dragended));
 
-    nodeGroup2.append('circle')
+    nodeElements.append('circle')
         .attr('r', 25)
-        .attr('fill', d => nodeColors[d.type] || '#64748b');
+        .attr('fill', d => nodeColors[d.type] || '#64748b')
+        .attr('stroke', '#fff')
+        .attr('stroke-width', 2);
 
-    nodeGroup2.append('text')
+    nodeElements.append('text')
         .attr('dy', 45)
+        .attr('text-anchor', 'middle')
+        .attr('fill', '#fff')
+        .attr('font-size', '12px')
+        .attr('font-weight', 'bold')
         .text(d => d.label);
 
-    nodeGroup2.append('text')
+    nodeElements.append('text')
         .attr('dy', -35)
+        .attr('text-anchor', 'middle')
         .attr('font-size', '10px')
         .attr('fill', '#94a3b8')
         .text(d => d.ip);
 
-    nodeElements = nodeGroup2;
-
-    // Create simulation
-    simulation = createSimulation(nodes, links, width, height);
-    
-    simulation.on('tick', () => {
-        linkElements
-            .attr('x1', d => d.source.x)
-            .attr('y1', d => d.source.y)
-            .attr('x2', d => d.target.x)
-            .attr('y2', d => d.target.y);
-
-        nodeElements.attr('transform', d => `translate(${d.x},${d.y})`);
-    });
+    console.log(`Visualization created with ${nodes.length} nodes and ${links.length} links`);
 }
 
 // Drag functions
 function dragstarted(event, d) {
-    if (!event.active) simulation.alphaTarget(0.3).restart();
-    d.fx = d.x;
-    d.fy = d.y;
+    d3.select(this).raise();
 }
 
 function dragged(event, d) {
-    d.fx = event.x;
-    d.fy = event.y;
+    d.x = event.x;
+    d.y = event.y;
+    
+    // Update node position
+    d3.select(this).attr('transform', `translate(${d.x},${d.y})`);
+    
+    // Update connected links
+    linkElements
+        .attr('x1', l => l.source.x)
+        .attr('y1', l => l.source.y)
+        .attr('x2', l => l.target.x)
+        .attr('y2', l => l.target.y);
 }
 
 function dragended(event, d) {
-    if (!event.active) simulation.alphaTarget(0);
-    d.fx = null;
-    d.fy = null;
+    // Nothing special needed
 }
 
 // Format bytes for display
@@ -250,8 +287,6 @@ socket.on('topology', (data) => {
 });
 
 socket.on('network_update', (data) => {
-    console.log('Network update:', data);
-    
     if (data.activity && data.activity.length > 0) {
         updateActivityLog(data.activity);
     }
@@ -268,15 +303,6 @@ socket.on('network_update', (data) => {
 // Handle window resize
 window.addEventListener('resize', () => {
     if (topology) {
-        const svg = d3.select('#network-viz');
-        const width = svg.node().getBoundingClientRect().width;
-        const height = svg.node().getBoundingClientRect().height;
-        svg.attr('viewBox', [0, 0, width, height]);
-        
-        if (simulation) {
-            simulation.force('center', d3.forceCenter(width / 2, height / 2));
-            simulation.alpha(0.3).restart();
-        }
+        updateVisualization(topology);
     }
 });
-
