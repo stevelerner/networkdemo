@@ -1,12 +1,20 @@
 #!/bin/bash
 set -e
 
+echo "Initializing OVS database..."
+# Create the database if it doesn't exist
+if [ ! -f /etc/openvswitch/conf.db ]; then
+    ovsdb-tool create /etc/openvswitch/conf.db /usr/share/openvswitch/vswitch.ovsschema
+fi
+
 echo "Starting Open vSwitch database..."
 ovsdb-server --remote=punix:/var/run/openvswitch/db.sock \
     --remote=db:Open_vSwitch,Open_vSwitch,manager_options \
     --pidfile --detach
 
-echo "Initializing OVS database..."
+sleep 1
+
+echo "Initializing OVS..."
 ovs-vsctl --no-wait init || true
 
 echo "Starting Open vSwitch daemon..."
@@ -22,10 +30,8 @@ ovs-vsctl --may-exist add-br br-switch30
 # Configure bridge
 ovs-vsctl set bridge br-switch30 other-config:disable-in-band=true
 
-# Add internal interface for switch management
-ip link add vlan30-mgmt type dummy 2>/dev/null || true
-ip link set vlan30-mgmt up
-ip addr add 10.30.30.1/24 dev vlan30-mgmt 2>/dev/null || true
+# Get container's IP address (assigned by Docker)
+CONTAINER_IP=$(ip -4 addr show eth0 | grep inet | awk '{print $2}')
 
 # Enable MAC learning logging
 ovs-appctl vlog/set ofproto_dpif:file:dbg 2>/dev/null || true
@@ -33,7 +39,7 @@ ovs-appctl vlog/set ofproto_dpif:file:dbg 2>/dev/null || true
 echo "============================================"
 echo "Switch initialized successfully!"
 echo "Bridge: br-switch30"
-echo "Management IP: 10.30.30.1/24"
+echo "Management IP: $CONTAINER_IP"
 echo "============================================"
 
 # Show initial status

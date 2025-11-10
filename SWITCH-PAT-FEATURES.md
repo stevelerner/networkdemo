@@ -29,11 +29,13 @@ This document summarizes the new Layer 2 switching and Port Address Translation 
 
 | Component | IP Address | Purpose |
 |-----------|------------|---------|
-| `switch` | 10.30.30.1 | Open vSwitch for Layer 2 demos |
+| `switch` | 10.30.30.2 | Open vSwitch for Layer 2 demos |
 | `client30a` | 10.30.30.10 | Client connected through switch |
 | `client30b` | 10.30.30.20 | Client connected through switch |
 | `wan-service` | 172.20.0.200 | Nginx service for port forwarding demos |
 | `router` (VLAN30) | 10.30.30.254 | Gateway for switched network |
+
+**Note**: 10.30.30.1 is reserved as the Docker network gateway.
 
 ## 📁 Files Created
 

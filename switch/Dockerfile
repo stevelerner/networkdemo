@@ -3,7 +3,6 @@ FROM alpine:3.20
 # Install Open vSwitch and networking tools
 RUN apk add --no-cache \
     openvswitch \
-    openvswitch-switch \
     bash \
     iproute2 \
     tcpdump \
