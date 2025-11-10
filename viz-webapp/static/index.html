@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Demo Visualization</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Network Infrastructure Visualization</h1>
+            <div class="status">
+                <span id="connection-status" class="status-dot offline"></span>
+                <span id="connection-text">Connecting...</span>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="viz-container">
+                <svg id="network-viz"></svg>
+            </div>
+
+            <div class="sidebar">
+                <div class="panel">
+                    <h3>Network Activity</h3>
+                    <div id="activity-log"></div>
+                </div>
+
+                <div class="panel">
+                    <h3>Container Stats</h3>
+                    <div id="stats-panel"></div>
+                </div>
+
+                <div class="panel">
+                    <h3>Router Firewall</h3>
+                    <div id="iptables-panel">
+                        <pre id="iptables-output">Waiting for data...</pre>
+                    </div>
+                </div>
+
+                <div class="panel legend">
+                    <h3>Legend</h3>
+                    <div class="legend-items">
+                        <div class="legend-item">
+                            <div class="node-sample router"></div>
+                            <span>Router</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="node-sample dns"></div>
+                            <span>DNS Server</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="node-sample web"></div>
+                            <span>Web Server</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="node-sample client"></div>
+                            <span>Client</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="node-sample dhcp"></div>
+                            <span>DHCP Server</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="node-sample external"></div>
+                            <span>External</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="pulse-indicator"></div>
+                            <span>Active Traffic</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/network.js"></script>
+</body>
+</html>
+

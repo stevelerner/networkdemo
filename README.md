@@ -11,6 +11,7 @@ A comprehensive, self-contained Docker-based demonstration of enterprise network
 - [What This Demonstrates](#what-this-demonstrates)
 - [Architecture](#architecture)
 - [Quick Start](#quick-start)
+- [Network Visualization](#network-visualization)
 - [Demo Scripts](#demo-scripts)
 - [Concept Explanations](#concept-explanations)
 - [Advanced Usage](#advanced-usage)
@@ -35,42 +36,7 @@ A comprehensive, self-contained Docker-based demonstration of enterprise network
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                        WAN Network                           │
-│                     172.20.0.0/24                            │
-│                                                              │
-│  ┌──────────────┐                    ┌──────────────┐       │
-│  │  Router      │                    │  WAN Host    │       │
-│  │ 172.20.0.254 │◄──────NAT──────────│ 172.20.0.100 │       │
-│  └──────┬───────┘                    └──────────────┘       │
-└─────────┼────────────────────────────────────────────────────┘
-          │
-    ┌─────┴─────┐
-    │           │
-    │  ROUTER   │  (Inter-VLAN Routing + Firewall + NAT)
-    │           │
-    └─────┬─────┘
-          │
-    ┏━━━━━┻━━━━━┓
-    ┃           ┃
-┌───▼───────────▼──────────────────────┐  ┌──────────────────────────────────┐
-│        VLAN 10                       │  │        VLAN 20                   │
-│     10.10.10.0/24                    │  │     10.20.20.0/24                │
-│                                      │  │                                  │
-│  ┌────────────┐  ┌────────────┐     │  │  ┌────────────┐  ┌────────────┐  │
-│  │  CoreDNS   │  │   Nginx    │     │  │  │  CoreDNS   │  │  dnsmasq   │  │
-│  │10.10.10.53 │  │10.10.10.10 │     │  │  │10.20.20.53 │  │10.20.20.2  │  │
-│  │ (DNS)      │  │ (HTTPS)    │     │  │  │ (DNS)      │  │  (DHCP)    │  │
-│  └────────────┘  └────────────┘     │  │  └────────────┘  └────────────┘  │
-│                                      │  │                                  │
-│  ┌────────────┐                      │  │  ┌────────────┐                 │
-│  │  client10  │                      │  │  │  client20  │                 │
-│  │10.10.10.100│                      │  │  │ (DHCP IP)  │                 │
-│  │  (Static)  │                      │  │  └────────────┘                 │
-│  └────────────┘                      │  │                                  │
-└──────────────────────────────────────┘  └──────────────────────────────────┘
-```
+![Network Topology](docs/network-topology.svg)
 
 ### Network Details
 
@@ -87,12 +53,13 @@ A comprehensive, self-contained Docker-based demonstration of enterprise network
 - Docker Desktop for Mac
 - `make` (included on macOS)
 - Optional: `mkcert` for trusted local certificates
+- Modern web browser (for visualization)
 
 ### Installation
 
 ```bash
 # 1. Clone or navigate to the project
-cd /Volumes/external/code/networkingdemo
+cd /Volumes/external/code/networkdemo
 
 # 2. Generate SSL certificates
 make certs
@@ -102,11 +69,35 @@ make up
 
 # 4. Verify everything is running
 make status
+
+# 5. Open the visualization (optional)
+make viz
+```
+
+### Cleanup
+
+When you're done with the demo:
+
+```bash
+# Stop all containers
+make down
+
+# Remove everything (containers, networks, volumes)
+make clean
+
+# Complete cleanup (also removes images and certificates)
+make clean-all
+
+# Nuclear option (if something is stuck)
+make force-clean
 ```
 
 ### Your First Demo
 
 ```bash
+# Open the network visualization (optional but recommended!)
+make viz
+
 # Test DNS resolution
 make demo-dns
 
@@ -119,6 +110,86 @@ make demo-routing
 # Run all demos
 make demo-all
 ```
+
+### Stopping and Cleaning Up
+
+```bash
+# Stop all containers (keeps images and data)
+make down
+
+# Clean up containers, networks, volumes
+make clean
+
+# Full cleanup: remove images and certificates too
+make clean-all
+
+# Force cleanup if containers are stuck
+make force-clean
+```
+
+---
+
+## Network Visualization
+
+The demo includes a real-time network visualization webapp that shows:
+- Live topology with all containers and networks
+- Real-time traffic activity with visual indicators
+- Container statistics (bytes sent/received, packet counts)
+- Router firewall rules
+- Active connections and data flows
+
+### Building the Visualization
+
+The visualization webapp is built automatically when you run `make up`. To build it manually:
+
+```bash
+# Option 1: Build via docker compose
+docker compose build viz
+
+# Option 2: Build using the dedicated script
+cd viz-webapp
+./build.sh
+```
+
+### Accessing the Visualization
+
+```bash
+# Start the environment (builds viz automatically)
+make up
+
+# Open visualization in your browser
+make viz
+```
+
+Or manually visit: **http://localhost:8080**
+
+### Features
+
+**Interactive Topology:**
+- Drag nodes to rearrange
+- Zoom and pan to explore
+- Color-coded nodes by type (router, DNS, web server, etc.)
+- Network zones visually grouped
+
+**Live Activity Monitoring:**
+- Nodes pulse when sending/receiving traffic
+- Real-time activity log shows traffic flows
+- Network statistics update every 500ms
+- Firewall rules displayed in real-time
+
+**Demo Integration:**
+Run demos in your terminal and watch the visualization update in real-time:
+```bash
+# In terminal: run a demo
+make demo-dns
+
+# In browser: watch DNS traffic flow between containers
+```
+
+### More Information
+
+For detailed information about the visualization webapp, including development, troubleshooting, and API documentation, see:
+- [viz-webapp/README.md](viz-webapp/README.md)
 
 ---
 
@@ -496,6 +567,38 @@ make certs
 make up
 ```
 
+### Issue: Visualization not loading
+
+```bash
+# Check if viz container is running
+docker ps | grep viz-webapp
+
+# View visualization logs
+docker logs viz-webapp
+
+# Rebuild visualization
+make build-viz
+
+# Restart just the viz container
+docker restart viz-webapp
+
+# Access directly
+curl http://localhost:8080
+```
+
+### Issue: Visualization shows no data
+
+```bash
+# Verify other containers are running
+docker ps
+
+# Check Docker socket mount
+docker inspect viz-webapp | grep docker.sock
+
+# Restart with verbose logs
+docker logs -f viz-webapp
+```
+
 ---
 
 ## Additional Resources
@@ -522,18 +625,30 @@ Ideas for enhancement:
 
 ## Makefile Commands Reference
 
+### Setup and Management
 ```bash
 make help           # Show all available commands
 make certs          # Generate SSL certificates
+make build          # Build all Docker images
+make build-viz      # Build only visualization webapp
 make up             # Start all containers
 make down           # Stop all containers
+make restart        # Restart all containers
 make status         # Show container status
 make logs           # View all logs
 make monitor        # Watch live traffic
+make viz            # Open network visualization
+```
+
+### Cleanup Commands
+```bash
 make clean          # Remove containers, networks, volumes
 make clean-all      # Remove everything including images and certs
+make force-clean    # Nuclear option - removes all traces
+```
 
-# Demos
+### Demos
+```bash
 make demo-dns       # DNS resolution demo
 make demo-https     # HTTPS demo
 make demo-ping      # Connectivity demo
@@ -552,6 +667,25 @@ make shell-router   # Access router
 make scan-vlan10    # Network scan VLAN10
 make scan-nginx     # Port scan nginx
 make health         # Health check all services
+```
+
+### Cleanup Order
+
+For a complete reset of the demo environment:
+
+```bash
+# 1. Stop everything
+make down
+
+# 2. Remove all artifacts
+make clean-all
+
+# 3. (Optional) If containers are stuck or issues persist
+make force-clean
+
+# 4. Rebuild from scratch
+make certs
+make up
 ```
 
 ---

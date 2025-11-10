@@ -31,6 +31,11 @@ build: ## Build all Docker images
 	@echo "$(CYAN)Building Docker images...$(NC)"
 	@docker compose build
 
+build-viz: ## Build only the visualization webapp
+	@echo "$(CYAN)Building visualization webapp...$(NC)"
+	@docker compose build viz
+	@echo "$(GREEN)Visualization webapp built successfully$(NC)"
+
 up: ## Start all containers
 	@echo "$(GREEN)Starting network demo...$(NC)"
 	@docker compose up -d
@@ -95,6 +100,22 @@ shell-router: ## Open shell in router
 
 shell-nginx: ## Open shell in nginx
 	@docker exec -it nginx-app /bin/sh
+
+shell-viz: ## Open shell in visualization webapp
+	@docker exec -it viz-webapp /bin/bash
+
+# ============================================
+# VISUALIZATION
+# ============================================
+
+viz: ## Open network visualization in browser
+	@echo "$(CYAN)Opening network visualization...$(NC)"
+	@echo "Visit: $(GREEN)http://localhost:8080$(NC)"
+	@echo ""
+	@echo "If it doesn't open automatically, paste this URL in your browser:"
+	@echo "  http://localhost:8080"
+	@echo ""
+	@command -v open >/dev/null 2>&1 && open http://localhost:8080 || true
 
 # ============================================
 # DEMO COMMANDS
