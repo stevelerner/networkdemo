@@ -32,8 +32,12 @@ iptables -P OUTPUT ACCEPT
 # Allow all forwarding for demo purposes
 iptables -A FORWARD -j ACCEPT
 
+# Detect WAN interface dynamically (172.20.0.0/24 network)
+WAN_IF=$(ip -4 addr show | grep "inet 172.20.0" | awk '{print $NF}')
+echo "Detected WAN interface: $WAN_IF"
+
 # NAT for WAN
-iptables -t nat -A POSTROUTING -o eth2 -j MASQUERADE
+iptables -t nat -A POSTROUTING -o $WAN_IF -j MASQUERADE
 
 echo "Router configuration complete"
 iptables -L -n -v

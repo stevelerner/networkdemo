@@ -104,6 +104,15 @@ shell-nginx: ## Open shell in nginx
 shell-viz: ## Open shell in visualization webapp
 	@docker exec -it viz-webapp /bin/bash
 
+shell-switch: ## Open shell in switch
+	@docker exec -it switch /bin/bash
+
+shell-client30a: ## Open shell in client30a (VLAN30)
+	@docker exec -it client30a /bin/bash
+
+shell-client30b: ## Open shell in client30b (VLAN30)
+	@docker exec -it client30b /bin/bash
+
 # ============================================
 # VISUALIZATION
 # ============================================
@@ -343,6 +352,175 @@ demo-firewall: ## Demonstrate firewall rules
 	@echo ""
 	@echo "$(GREEN)Firewall policy changes applied!$(NC)"
 
+demo-switch: ## Demonstrate Layer 2 switch operations
+	@echo "=================================================="
+	@echo "$(GREEN)SWITCH DEMO - Layer 2 Operations$(NC)"
+	@echo "=================================================="
+	@echo ""
+	@echo "$(CYAN)1. Switch Status (Open vSwitch):$(NC)"
+	@echo "   # Layer 2 switch bridge configuration"
+	@echo "   $ docker exec switch ovs-vsctl show"
+	@docker exec switch ovs-vsctl show
+	@echo ""
+	@echo "$(CYAN)2. MAC Address Learning Table:$(NC)"
+	@echo "   # Layer 2 forwarding database showing learned MAC addresses"
+	@echo "   $ docker exec switch ovs-appctl fdb/show br-switch30"
+	@docker exec switch ovs-appctl fdb/show br-switch30 2>/dev/null || echo "   (Table initially empty - learning occurs on traffic)"
+	@echo ""
+	@echo "$(CYAN)3. Generate traffic between clients to populate MAC table:$(NC)"
+	@echo "   # Clients communicate to trigger MAC learning"
+	@echo "   $ docker exec client30a ping -c 3 10.30.30.20"
+	@docker exec client30a ping -c 3 10.30.30.20
+	@echo ""
+	@echo "$(CYAN)4. Check MAC table after traffic:$(NC)"
+	@echo "   # Layer 2 switch has now learned MAC addresses from frames"
+	@echo "   $ docker exec switch ovs-appctl fdb/show br-switch30"
+	@docker exec switch ovs-appctl fdb/show br-switch30
+	@echo ""
+	@echo "$(CYAN)5. View OpenFlow flow statistics:$(NC)"
+	@echo "   # Layer 2 forwarding flow counters"
+	@echo "   $ docker exec switch ovs-ofctl dump-flows br-switch30"
+	@docker exec switch ovs-ofctl dump-flows br-switch30
+	@echo ""
+	@echo "$(CYAN)6. Show ARP tables on clients:$(NC)"
+	@echo "   # Layer 2/3 address resolution showing MAC-to-IP mappings"
+	@echo "   Client30A ARP table:"
+	@docker exec client30a arp -n
+	@echo ""
+	@echo "   Client30B ARP table:"
+	@docker exec client30b arp -n
+	@echo ""
+	@echo "$(CYAN)OSI Layer Context:$(NC)"
+	@echo "  Switch (Layer 2 - Data Link): Forwards frames based on destination MAC addresses."
+	@echo "  MAC Learning: Switch dynamically learns which MAC addresses are reachable on which ports."
+	@echo "  Clients (Layers 2-7 - Host stack): Send frames that the switch forwards within the broadcast domain."
+	@echo ""
+	@echo "$(GREEN)Switch MAC learning demonstrated!$(NC)"
+
+demo-pat: ## Demonstrate Port Address Translation (PAT/NAPT)
+	@echo "=================================================="
+	@echo "$(GREEN)PORT ADDRESS TRANSLATION (PAT) DEMO$(NC)"
+	@echo "=================================================="
+	@echo ""
+	@echo "$(CYAN)1. Show current NAT rules on router:$(NC)"
+	@echo "   # Layer 3/4 NAT configuration including MASQUERADE for PAT"
+	@echo "   $ docker exec router iptables -t nat -L -n -v"
+	@docker exec router iptables -t nat -L -n -v
+	@echo ""
+	@echo "$(CYAN)2. Check ephemeral port range for PAT:$(NC)"
+	@echo "   # Available port range for source port translation (up to ~60K concurrent connections)"
+	@echo "   $ docker exec router cat /proc/sys/net/ipv4/ip_local_port_range"
+	@docker exec router cat /proc/sys/net/ipv4/ip_local_port_range
+	@echo ""
+	@echo "$(CYAN)3. Generate outbound connections to WAN:$(NC)"
+	@echo "   # Multiple internal clients accessing external service"
+	@echo "   Client10 -> WAN host:"
+	@docker exec client10 curl -s http://172.20.0.100:8080 | head -n 1
+	@echo "   Client20 -> WAN host:"
+	@docker exec client20 curl -s http://172.20.0.100:8080 | head -n 1
+	@echo "   Client30A -> WAN host:"
+	@docker exec client30a curl -s http://172.20.0.100:8080 | head -n 1
+	@echo ""
+	@echo "$(CYAN)4. Connection tracking table (showing PAT translations):$(NC)"
+	@echo "   # Layer 3/4 conntrack entries: internal IP:port -> router IP:translated_port -> external IP:port"
+	@echo "   $ docker exec router cat /proc/net/nf_conntrack | grep ESTABLISHED | head -n 10"
+	@docker exec router cat /proc/net/nf_conntrack | grep ESTABLISHED | head -n 10 || echo "   (No active connections)"
+	@echo ""
+	@echo "$(CYAN)5. Count active PAT connections:$(NC)"
+	@echo "   # Number of concurrent NAT sessions"
+	@echo "   $ docker exec router cat /proc/net/nf_conntrack | grep -c ESTABLISHED"
+	@docker exec router sh -c "cat /proc/net/nf_conntrack | grep -c ESTABLISHED || echo 0"
+	@echo ""
+	@echo "$(CYAN)6. Detailed PAT example - multiple connections to same destination:$(NC)"
+	@echo "   # Same internal client, multiple connections, different source ports"
+	@echo "   $ docker exec client10 sh -c 'for i in 1 2 3; do curl -s http://172.20.0.100:8080 >/dev/null & done; sleep 1'"
+	@docker exec client10 sh -c 'for i in 1 2 3; do curl -s http://172.20.0.100:8080 >/dev/null & done; sleep 1'
+	@echo "   $ docker exec router cat /proc/net/nf_conntrack | grep '172.20.0.100' | grep ESTABLISHED"
+	@docker exec router sh -c "cat /proc/net/nf_conntrack | grep '172.20.0.100' | grep ESTABLISHED || echo '   (Connections completed)'"
+	@echo ""
+	@echo "$(CYAN)OSI Layer Context:$(NC)"
+	@echo "  PAT (Layers 3/4 - Network/Transport): Translates both IP addresses AND port numbers."
+	@echo "  MASQUERADE: Multiple internal IPs share one external IP using different source ports."
+	@echo "  Connection Tracking: Kernel maintains state table for bidirectional translation."
+	@echo "  Each internal connection gets unique external port mapping (IP:port -> IP:port)."
+	@echo ""
+	@echo "$(GREEN)PAT/NAPT translation demonstrated!$(NC)"
+
+demo-port-forward: ## Demonstrate port forwarding (Destination NAT)
+	@echo "=================================================="
+	@echo "$(GREEN)PORT FORWARDING (DNAT) DEMO$(NC)"
+	@echo "=================================================="
+	@echo ""
+	@echo "$(CYAN)1. Add port forwarding rule (WAN:8888 -> WAN_SERVICE:80):$(NC)"
+	@echo "   # Layer 3/4 DNAT rule to expose internal service on external port"
+	@echo "   $ docker exec router iptables -t nat -A PREROUTING -p tcp --dport 8888 -j DNAT --to-destination 172.20.0.200:80"
+	@docker exec router iptables -t nat -A PREROUTING -p tcp --dport 8888 -j DNAT --to-destination 172.20.0.200:80
+	@echo "$(GREEN)Port forwarding rule added$(NC)"
+	@echo ""
+	@echo "$(CYAN)2. View DNAT rules:$(NC)"
+	@echo "   # PREROUTING chain handles incoming connections for port forwarding"
+	@echo "   $ docker exec router iptables -t nat -L PREROUTING -n -v"
+	@docker exec router iptables -t nat -L PREROUTING -n -v
+	@echo ""
+	@echo "$(CYAN)3. Test port forwarding from internal client:$(NC)"
+	@echo "   # Internal client accesses external IP on forwarded port"
+	@echo "   $ docker exec client10 curl -s http://172.20.0.254:8888"
+	@docker exec client10 curl -s http://172.20.0.254:8888
+	@echo ""
+	@echo "$(CYAN)4. Show connection tracking for port forwarding:$(NC)"
+	@echo "   # Conntrack shows DNAT translation: external:8888 -> internal:80"
+	@echo "   $ docker exec router cat /proc/net/nf_conntrack | grep 8888"
+	@docker exec router sh -c "cat /proc/net/nf_conntrack | grep 8888 || echo '   (Connection completed)'"
+	@echo ""
+	@echo "$(CYAN)5. Remove port forwarding rule:$(NC)"
+	@echo "   # Clean up DNAT rule"
+	@echo "   $ docker exec router iptables -t nat -D PREROUTING -p tcp --dport 8888 -j DNAT --to-destination 172.20.0.200:80"
+	@docker exec router iptables -t nat -D PREROUTING -p tcp --dport 8888 -j DNAT --to-destination 172.20.0.200:80
+	@echo "$(GREEN)Port forwarding rule removed$(NC)"
+	@echo ""
+	@echo "$(CYAN)OSI Layer Context:$(NC)"
+	@echo "  DNAT (Layers 3/4 - Network/Transport): Rewrites destination IP:port in incoming packets."
+	@echo "  Port Forwarding: Makes internal services accessible from external networks."
+	@echo "  Use Case: Hosting services behind NAT (e.g., web servers, SSH, gaming servers)."
+	@echo ""
+	@echo "$(GREEN)Port forwarding (DNAT) demonstrated!$(NC)"
+
+demo-switch-mirror: ## Demonstrate port mirroring (SPAN)
+	@echo "=================================================="
+	@echo "$(GREEN)PORT MIRRORING (SPAN) DEMO$(NC)"
+	@echo "=================================================="
+	@echo ""
+	@echo "$(CYAN)1. Create mirror to monitor traffic:$(NC)"
+	@echo "   # Layer 2 port mirroring configuration"
+	@echo "   $ docker exec switch ovs-vsctl -- --id=@m create mirror name=mirror0 select-all=true -- set bridge br-switch30 mirrors=@m"
+	@docker exec switch ovs-vsctl -- --id=@m create mirror name=mirror0 select-all=true -- set bridge br-switch30 mirrors=@m
+	@echo "$(GREEN)Mirror created - all traffic is now copied$(NC)"
+	@echo ""
+	@echo "$(CYAN)2. View mirror configuration:$(NC)"
+	@echo "   $ docker exec switch ovs-vsctl list mirror"
+	@docker exec switch ovs-vsctl list mirror
+	@echo ""
+	@echo "$(CYAN)3. Generate traffic while capturing:$(NC)"
+	@echo "   # Traffic between clients is mirrored"
+	@echo "   (Starting capture in background...)"
+	@docker exec -d switch timeout 10 tcpdump -i any -n icmp -c 10 > /tmp/mirror.log 2>&1 || true
+	@sleep 1
+	@echo "   Generating ICMP traffic:"
+	@docker exec client30a ping -c 3 10.30.30.20
+	@sleep 2
+	@echo ""
+	@echo "$(CYAN)4. Remove mirror:$(NC)"
+	@echo "   $ docker exec switch ovs-vsctl clear bridge br-switch30 mirrors"
+	@docker exec switch ovs-vsctl clear bridge br-switch30 mirrors
+	@echo "$(GREEN)Mirror removed$(NC)"
+	@echo ""
+	@echo "$(CYAN)OSI Layer Context:$(NC)"
+	@echo "  Port Mirroring (Layer 2 - Data Link): Copies all frames to monitoring port."
+	@echo "  Use Case: Network monitoring, IDS/IPS, traffic analysis, troubleshooting."
+	@echo "  SPAN (Switched Port Analyzer): Cisco terminology for port mirroring."
+	@echo ""
+	@echo "$(GREEN)Port mirroring demonstrated!$(NC)"
+
 demo-all: ## Run all demos in sequence
 	@make demo-ping
 	@echo ""
@@ -356,11 +534,19 @@ demo-all: ## Run all demos in sequence
 	@echo ""
 	@make demo-nat
 	@echo ""
+	@make demo-pat
+	@echo ""
 	@make demo-firewall
+	@echo ""
+	@make demo-switch
 	@echo ""
 	@echo "=================================================="
 	@echo "$(GREEN)ALL DEMOS COMPLETE!$(NC)"
 	@echo "=================================================="
+	@echo ""
+	@echo "$(CYAN)Additional Demos:$(NC)"
+	@echo "  make demo-port-forward  - Port forwarding (DNAT) demo"
+	@echo "  make demo-switch-mirror - Port mirroring (SPAN) demo"
 
 # ============================================
 # ADVANCED DIAGNOSTICS

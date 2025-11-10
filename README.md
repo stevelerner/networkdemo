@@ -26,11 +26,15 @@ A comprehensive, self-contained Docker-based demonstration of enterprise network
 | Concept | Implementation | Real-World Equivalent | OSI Layer(s) | Why it exercises that layer |
 |---------|---------------|----------------------|--------------|-----------------------------|
 | **VLAN Segmentation** | Docker user-defined bridges | 802.1Q VLAN tagging on switches | Layer 2 (Data Link) | Demonstrates MAC-level segmentation and broadcast domain isolation. |
+| **Layer 2 Switching** | Open vSwitch with MAC learning | Enterprise Ethernet switch | Layer 2 (Data Link) | Forwards frames based on learned MAC addresses; demonstrates switching fundamentals. |
 | **Inter-VLAN Routing** | Router container with IP forwarding | Layer 3 switch or router | Layer 3 (Network) | Routes IP packets between subnets and applies NAT/firewall rules. |
 | **DNS Resolution** | CoreDNS authoritative server | Internal DNS infrastructure | Layer 7 (Application) | Handles name-resolution queries over UDP/TCP atop lower layers. |
 | **DHCP** | dnsmasq DHCP server | DHCP server in enterprise network | Layer 7 (Application) | Negotiates leases, delivering IP/gateway/DNS options via UDP broadcasts. |
 | **HTTPS/TLS** | Nginx with SSL certificates | Secure web services | Layer 7 (Application) | Terminates TLS sessions and serves encrypted HTTP content. |
 | **NAT** | iptables MASQUERADE | Corporate gateway NAT | Layer 3 (Network) | Rewrites IP headers to share WAN access across private hosts. |
+| **PAT/NAPT** | iptables MASQUERADE with port translation | Home router / corporate gateway | Layers 3/4 (Network/Transport) | Translates both IP addresses AND ports; multiplexes connections. |
+| **Port Forwarding** | iptables DNAT rules | Expose services behind NAT | Layers 3/4 (Network/Transport) | Destination NAT to make internal services externally accessible. |
+| **Port Mirroring** | Open vSwitch SPAN | Network monitoring / IDS placement | Layer 2 (Data Link) | Copies all traffic to monitoring port for analysis. |
 | **Firewall** | iptables with stateful rules | Enterprise firewall/ACLs | Layers 3/4 (Network/Transport) | Filters traffic based on IP/port tuples with connection tracking. |
 | **Monitoring** | Live tcpdump traffic capture | Network monitoring tools | Layers 2-4 (Data Link/Network/Transport) | Captures frames and packets to inspect link, IP, and transport headers. |
 
@@ -44,18 +48,20 @@ A comprehensive, self-contained Docker-based demonstration of enterprise network
 
 - **VLAN 10 (10.10.10.0/24)**: Static IP assignments, hosts DNS and HTTPS services
 - **VLAN 20 (10.20.20.0/24)**: DHCP-based assignments, separate L2 domain
-- **WAN (172.20.0.0/24)**: Simulates external network access via NAT
+- **VLAN 30 (10.30.30.0/24)**: Switched network with Open vSwitch, demonstrates Layer 2 operations
+- **WAN (172.20.0.0/24)**: Simulates external network access via NAT/PAT
 
 ### OSI Layer Mapping
 
 | Component | OSI Layer(s) | How it uses that layer in the demo |
 |-----------|---------------|------------------------------------|
-| Router (`router`) | Layer 3 (Network) | Forwards IP packets between VLANs and the WAN while enforcing NAT and firewall policies with iptables. |
+| Router (`router`) | Layer 3 (Network) | Forwards IP packets between VLANs and the WAN while enforcing NAT/PAT and firewall policies with iptables. |
+| Switch (`switch`) | Layer 2 (Data Link) | Open vSwitch that learns MAC addresses and forwards Ethernet frames; demonstrates switching, port mirroring, and flow tables. |
 | CoreDNS (`coredns10`, `coredns20`) | Layer 7 (Application) | Responds to DNS queries over UDP/TCP, translating hostnames to IP addresses for clients once lower layers deliver the packets. |
 | dnsmasq DHCP (`dhcp`) | Layer 7 (Application) | Negotiates DHCP leases, handing out IP, gateway, and DNS settings after the transport/network layers carry the broadcast and reply frames. |
 | Nginx (`nginx`) | Layer 7 (Application) | Terminates HTTPS connections and serves content over TLS on top of TCP/IP, showcasing secure application delivery. |
-| Clients (`client10`, `client20`) | Layers 3–7 (Host stack) | Initiate traffic end-to-end, exercising IP routing, TCP/UDP transport, and application protocols like DNS, HTTPS, and DHCP. |
-| WAN Host (`wanhost`) | Layer 7 (Application) | Provides a simple HTTP service on the external network that internal clients reach through routed Layer 3 connectivity. |
+| Clients (`client10`, `client20`, `client30a`, `client30b`) | Layers 2–7 (Host stack) | Initiate traffic end-to-end, exercising Layer 2 switching, IP routing, TCP/UDP transport, and application protocols. |
+| WAN Host (`wanhost`) | Layer 7 (Application) | Provides a simple HTTP service on the external network that internal clients reach through routed Layer 3 connectivity and NAT/PAT. |
 
 ---
 
@@ -222,12 +228,19 @@ Each demo can be run individually using the Makefile commands. The demos are des
 make demo-ping      # Basic connectivity
 make demo-dns       # DNS resolution
 make demo-https     # Secure web access
-make demo-firewall  # Dynamic firewall rules
+make demo-switch    # Layer 2 switching
 ```
 
-**Full demo sequence (15-20 minutes):**
+**Full demo sequence (20-25 minutes):**
 ```bash
 make demo-all       # Runs all demos in order
+```
+
+**Advanced demos:**
+```bash
+make demo-pat              # Port Address Translation
+make demo-port-forward     # Port forwarding (DNAT)
+make demo-switch-mirror    # Port mirroring (SPAN)
 ```
 
 ### Failure Scenario Testing
@@ -360,6 +373,70 @@ make demo-firewall
 - Can add logging with `-j LOG` for visibility
 - Rules are applied immediately (no restart needed)
 
+### 7. Switch Demo
+
+```bash
+make demo-switch
+```
+
+**Explanation:**
+> Open vSwitch provides true Layer 2 switching with MAC address learning. As clients communicate, the switch builds a forwarding database (MAC table) mapping MAC addresses to ports. This demonstrates fundamental Ethernet switching operations.
+> This is a pure **OSI Layer 2 (Data Link)** function, operating on Ethernet frames rather than IP packets.
+
+**Technical details:**
+- Open vSwitch bridge: `br-switch30`
+- Dynamic MAC learning (flood-and-learn)
+- Flow table with statistics
+- ARP resolution demonstrates Layer 2/3 interaction
+
+### 8. PAT Demo (Port Address Translation)
+
+```bash
+make demo-pat
+```
+
+**Explanation:**
+> PAT (also called NAPT - Network Address and Port Translation) extends NAT by translating both IP addresses AND port numbers. Multiple internal hosts can share a single external IP by using different source ports. The router maintains a connection tracking table mapping internal IP:port combinations to external port numbers.
+> This operates at **OSI Layers 3/4 (Network/Transport)**, rewriting both IP headers and TCP/UDP port fields.
+
+**Technical details:**
+- MASQUERADE performs dynamic PAT on WAN interface
+- Ephemeral port range: typically 32768-60999 (~28K ports)
+- Connection tracking in `/proc/net/nf_conntrack`
+- Each internal connection gets unique external port
+
+### 9. Port Forwarding Demo (Destination NAT)
+
+```bash
+make demo-port-forward
+```
+
+**Explanation:**
+> Port forwarding (DNAT) rewrites the destination address of incoming packets, allowing external hosts to access services behind NAT. For example, external port 8888 can forward to an internal service on port 80. This is how home routers expose servers, game consoles, or security cameras.
+> DNAT operates at **OSI Layers 3/4 (Network/Transport)**, modifying destination IP:port tuples in the PREROUTING chain.
+
+**Technical details:**
+- PREROUTING chain handles incoming connections
+- Stateful return path (connection tracking)
+- Can forward different external ports to different internal services
+- Supports hairpin NAT (internal clients accessing via external IP)
+
+### 10. Port Mirroring Demo (SPAN)
+
+```bash
+make demo-switch-mirror
+```
+
+**Explanation:**
+> Port mirroring (also called SPAN - Switched Port Analyzer) copies all traffic from specified ports to a monitoring port. This is essential for intrusion detection systems (IDS), network analyzers, and troubleshooting. The mirrored traffic is an exact copy, allowing passive monitoring without affecting the original flow.
+> This is a **OSI Layer 2 (Data Link)** feature, copying raw Ethernet frames.
+
+**Technical details:**
+- Open vSwitch mirror configuration
+- Can mirror ingress, egress, or both
+- Select individual ports or all traffic
+- No impact on forwarding performance
+
 ---
 
 ## Concept Explanations
@@ -392,10 +469,12 @@ This demo showcases enterprise networking concepts using Docker containers to si
 | Demo Component | Production Tech |
 |----------------|-----------------|
 | Docker bridges | Cisco VLANs with 802.1Q tagging |
+| Open vSwitch | Cisco Catalyst, Juniper EX, Arista |
 | iptables router | Cisco ASA, Palo Alto, pfSense |
 | CoreDNS | BIND9, Windows DNS, Route53 |
 | dnsmasq DHCP | ISC DHCP, Windows DHCP, Infoblox |
 | Nginx HTTPS | Load balancers (F5, HAProxy, ALB) |
+| OVS port mirror | Cisco SPAN, Juniper port mirroring |
 
 ### Common Questions & Answers
 
@@ -492,6 +571,14 @@ docker exec client10 ip route show
 
 # View ARP table
 docker exec client10 arp -n
+
+# Switch operations
+docker exec switch ovs-vsctl show                    # Show switch configuration
+docker exec switch ovs-appctl fdb/show br-switch30  # Show MAC learning table
+docker exec switch ovs-ofctl dump-flows br-switch30 # Show flow statistics
+docker exec switch /show-mac-table.sh                # Helper script for MAC table
+docker exec switch /enable-mirror.sh                 # Enable port mirroring
+docker exec switch /disable-mirror.sh                # Disable port mirroring
 ```
 
 ### Firewall Manipulation
@@ -511,6 +598,53 @@ docker logs router
 
 # Flush all rules (reset)
 docker exec router iptables -F FORWARD
+```
+
+### Switch Operations
+
+```bash
+# View MAC address learning table
+docker exec switch ovs-appctl fdb/show br-switch30
+
+# View OpenFlow flows
+docker exec switch ovs-ofctl dump-flows br-switch30
+
+# View port statistics
+docker exec switch ovs-ofctl dump-ports br-switch30
+
+# Enable port mirroring
+docker exec switch /enable-mirror.sh
+
+# Disable port mirroring
+docker exec switch /disable-mirror.sh
+
+# Capture mirrored traffic
+docker exec switch tcpdump -i any -n icmp
+
+# View switch configuration
+docker exec switch ovs-vsctl show
+```
+
+### NAT/PAT Operations
+
+```bash
+# View NAT rules
+docker exec router iptables -t nat -L -n -v
+
+# View connection tracking table
+docker exec router cat /proc/net/nf_conntrack
+
+# Count active connections
+docker exec router cat /proc/net/nf_conntrack | wc -l
+
+# View PAT port range
+docker exec router cat /proc/sys/net/ipv4/ip_local_port_range
+
+# Add port forwarding rule
+docker exec router iptables -t nat -A PREROUTING -p tcp --dport 8888 -j DNAT --to-destination 172.20.0.200:80
+
+# Remove port forwarding rule
+docker exec router iptables -t nat -D PREROUTING -p tcp --dport 8888 -j DNAT --to-destination 172.20.0.200:80
 ```
 
 ---
@@ -639,11 +773,13 @@ docker logs -f viz-webapp
 Ideas for enhancement:
 1. **Add OSPF routing** using FRRouting
 2. **Implement VPN** with OpenVPN or WireGuard
-3. **Add IDS/IPS** with Suricata
+3. **Add IDS/IPS** with Suricata connected to mirror port
 4. **Load balancing** with HAProxy
 5. **Monitoring** with Prometheus + Grafana
 6. **Log aggregation** with ELK stack
 7. **Service mesh** with Istio
+8. **QoS/Traffic shaping** with tc (traffic control)
+9. **802.1Q VLAN tagging** with explicit trunk ports
 
 ---
 
@@ -673,19 +809,27 @@ make force-clean    # Nuclear option - removes all traces
 
 ### Demos
 ```bash
-make demo-dns       # DNS resolution demo
-make demo-https     # HTTPS demo
-make demo-ping      # Connectivity demo
-make demo-routing   # Inter-VLAN routing demo
-make demo-dhcp      # DHCP demo
-make demo-nat       # NAT demo
-make demo-firewall  # Firewall demo
-make demo-all       # Run all demos
+make demo-dns            # DNS resolution demo
+make demo-https          # HTTPS demo
+make demo-ping           # Connectivity demo
+make demo-routing        # Inter-VLAN routing demo
+make demo-dhcp           # DHCP demo
+make demo-nat            # NAT demo
+make demo-pat            # Port Address Translation demo
+make demo-firewall       # Firewall demo
+make demo-switch         # Layer 2 switching demo
+make demo-port-forward   # Port forwarding (DNAT) demo
+make demo-switch-mirror  # Port mirroring (SPAN) demo
+make demo-all            # Run all demos
 
 # Shell access
-make shell-client10 # Access VLAN10 client
-make shell-client20 # Access VLAN20 client
-make shell-router   # Access router
+make shell-client10  # Access VLAN10 client
+make shell-client20  # Access VLAN20 client
+make shell-client30a # Access VLAN30 client A
+make shell-client30b # Access VLAN30 client B
+make shell-router    # Access router
+make shell-switch    # Access switch
+make shell-nginx     # Access nginx
 
 # Diagnostics
 make scan-vlan10    # Network scan VLAN10
