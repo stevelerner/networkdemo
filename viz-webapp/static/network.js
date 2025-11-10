@@ -47,21 +47,30 @@ function initVisualization() {
 // Create force simulation
 function createSimulation(nodes, links, width, height) {
     return d3.forceSimulation(nodes)
-        .force('link', d3.forceLink(links).id(d => d.id).distance(150))
-        .force('charge', d3.forceManyBody().strength(-400))
+        .force('link', d3.forceLink(links).id(d => d.id).distance(200))
+        .force('charge', d3.forceManyBody().strength(-800))
         .force('center', d3.forceCenter(width / 2, height / 2))
-        .force('collision', d3.forceCollide().radius(50));
+        .force('collision', d3.forceCollide().radius(60))
+        .force('x', d3.forceX(width / 2).strength(0.05))
+        .force('y', d3.forceY(height / 2).strength(0.05));
 }
 
 // Update visualization with topology data
 function updateVisualization(data) {
     topology = data;
     
-    // Create nodes array
-    nodes = data.nodes.map(n => ({
+    // Initialize visualization first to get width and height
+    const { svg, linkGroup, nodeGroup, width, height } = initVisualization();
+    
+    // Create nodes array with better initial positioning
+    const nodeCount = data.nodes.length;
+    const angleStep = (2 * Math.PI) / nodeCount;
+    const radius = Math.min(width, height) * 0.3;
+    
+    nodes = data.nodes.map((n, i) => ({
         ...n,
-        x: Math.random() * 800 + 100,
-        y: Math.random() * 600 + 100
+        x: width / 2 + radius * Math.cos(i * angleStep),
+        y: height / 2 + radius * Math.sin(i * angleStep)
     }));
 
     // Create links array from network memberships
@@ -79,8 +88,6 @@ function updateVisualization(data) {
             }
         }
     });
-
-    const { svg, linkGroup, nodeGroup, width, height } = initVisualization();
     
     // Create links
     linkElements = linkGroup.selectAll('line')
@@ -90,6 +97,7 @@ function updateVisualization(data) {
         .style('stroke', d => {
             if (d.network === 'vlan10') return 'rgba(59, 130, 246, 0.3)';
             if (d.network === 'vlan20') return 'rgba(236, 72, 153, 0.3)';
+            if (d.network === 'vlan30') return 'rgba(251, 191, 36, 0.3)';  // Golden for switched network
             if (d.network === 'wan') return 'rgba(100, 116, 139, 0.3)';
             return 'rgba(255, 255, 255, 0.3)';
         });
