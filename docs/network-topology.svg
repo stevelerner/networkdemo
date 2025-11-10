@@ -80,6 +80,7 @@
     <text class="node-label" x="790" y="258" text-anchor="middle" font-size="14">iptables</text>
   </g>
   <text class="ip-label" x="790" y="300" text-anchor="middle" font-size="15">172.20.0.254</text>
+  <text class="ip-label" x="790" y="318" text-anchor="middle" font-size="14">OSI Layer 3 (Network)</text>
   
   <!-- WAN Host -->
   <g filter="url(#shadow)">
@@ -89,6 +90,7 @@
     <text class="node-label" x="1440" y="260" text-anchor="middle" font-size="14">Python HTTP</text>
   </g>
   <text class="ip-label" x="1440" y="300" text-anchor="middle" font-size="15">172.20.0.100</text>
+  <text class="ip-label" x="1440" y="318" text-anchor="middle" font-size="14">OSI Layer 7 (Application)</text>
   
   <!-- Connection: Router to WAN Host -->
   <line class="connection" x1="880" y1="220" x2="1350" y2="220"/>
@@ -102,10 +104,7 @@
     <text class="node-label" x="865" y="540" text-anchor="middle" font-size="14">Inter-VLAN + NAT</text>
     <text class="node-label" x="865" y="562" text-anchor="middle" font-size="14">Firewall</text>
   </g>
-  
-  <!-- Connection: WAN to Main Router -->
-  <line class="connection-main" x1="810" y1="275" x2="865" y2="420"/>
-  <polygon fill="#94a3b8" points="865,420 860,410 870,413"/>
+  <text class="ip-label" x="865" y="600" text-anchor="middle" font-size="15">OSI Layer 3 (Network)</text>
   
   <!-- VLAN 10 Zone -->
   <rect x="80" y="670" width="800" height="380" rx="15" fill="#dbeafe" stroke="#3b82f6" stroke-width="3" opacity="0.4"/>
@@ -121,6 +120,7 @@
     <text class="node-label" x="220" y="905" text-anchor="middle" font-size="15">coredns:1.11.1</text>
   </g>
   <text class="ip-label" x="220" y="965" text-anchor="middle" font-size="15">10.10.10.53</text>
+  <text class="ip-label" x="220" y="985" text-anchor="middle" font-size="14">OSI Layer 7 (Application)</text>
   
   <!-- VLAN 10: Nginx -->
   <g filter="url(#shadow)">
@@ -131,6 +131,7 @@
     <text class="node-label" x="440" y="908" text-anchor="middle" font-size="14">nginx:1.27-alpine</text>
   </g>
   <text class="ip-label" x="440" y="965" text-anchor="middle" font-size="15">10.10.10.10</text>
+  <text class="ip-label" x="440" y="985" text-anchor="middle" font-size="14">OSI Layer 7 (Application)</text>
   
   <!-- VLAN 10: Client -->
   <g filter="url(#shadow)">
@@ -144,6 +145,7 @@
     <text class="node-label" x="660" y="918" text-anchor="middle" font-size="15">alpine:3.20</text>
   </g>
   <text class="ip-label" x="660" y="965" text-anchor="middle" font-size="15">10.10.10.100</text>
+  <text class="ip-label" x="660" y="985" text-anchor="middle" font-size="14">OSI Layers 3-7 (Host stack)</text>
   
   <!-- VLAN 20 Zone -->
   <rect x="920" y="670" width="800" height="380" rx="15" fill="#fce7f3" stroke="#ec4899" stroke-width="3" opacity="0.4"/>
@@ -159,6 +161,7 @@
     <text class="node-label" x="1060" y="905" text-anchor="middle" font-size="15">coredns:1.11.1</text>
   </g>
   <text class="ip-label" x="1060" y="965" text-anchor="middle" font-size="15">10.20.20.53</text>
+  <text class="ip-label" x="1060" y="985" text-anchor="middle" font-size="14">OSI Layer 7 (Application)</text>
   
   <!-- VLAN 20: DHCP -->
   <g filter="url(#shadow)">
@@ -169,6 +172,7 @@
     <text class="node-label" x="1280" y="905" text-anchor="middle" font-size="15">alpine:3.20</text>
   </g>
   <text class="ip-label" x="1280" y="965" text-anchor="middle" font-size="15">10.20.20.2</text>
+  <text class="ip-label" x="1280" y="985" text-anchor="middle" font-size="14">OSI Layer 7 (Application)</text>
   
   <!-- VLAN 20: Client -->
   <g filter="url(#shadow)">
@@ -182,6 +186,7 @@
     <text class="node-label" x="1500" y="918" text-anchor="middle" font-size="15">alpine:3.20</text>
   </g>
   <text class="ip-label" x="1500" y="965" text-anchor="middle" font-size="15">DHCP Assigned</text>
+  <text class="ip-label" x="1500" y="985" text-anchor="middle" font-size="14">OSI Layers 3-7 (Host stack)</text>
   
   <!-- Connections: Router to VLANs -->
   <line class="connection-main" x1="800" y1="580" x2="480" y2="670"/>

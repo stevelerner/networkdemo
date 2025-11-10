@@ -2,6 +2,8 @@
 
 A comprehensive, self-contained Docker-based demonstration of enterprise networking concepts including VLAN segmentation, inter-VLAN routing, DNS, DHCP, HTTPS/TLS, NAT, and dynamic firewall rules.
 
+> **Platform note:** Designed and tested on macOS with Docker Desktop; other hosts may require adjustments.
+
 **Perfect for learning, teaching, or demonstrating networking concepts.**
 
 ---
@@ -21,16 +23,16 @@ A comprehensive, self-contained Docker-based demonstration of enterprise network
 
 ## What This Demonstrates
 
-| Concept | Implementation | Real-World Equivalent |
-|---------|---------------|----------------------|
-| **VLAN Segmentation** | Docker user-defined bridges | 802.1Q VLAN tagging on switches |
-| **Inter-VLAN Routing** | Router container with IP forwarding | Layer 3 switch or router |
-| **DNS Resolution** | CoreDNS authoritative server | Internal DNS infrastructure |
-| **DHCP** | dnsmasq DHCP server | DHCP server in enterprise network |
-| **HTTPS/TLS** | Nginx with SSL certificates | Secure web services |
-| **NAT** | iptables MASQUERADE | Corporate gateway NAT |
-| **Firewall** | iptables with stateful rules | Enterprise firewall/ACLs |
-| **Monitoring** | Live tcpdump traffic capture | Network monitoring tools |
+| Concept | Implementation | Real-World Equivalent | OSI Layer(s) | Why it exercises that layer |
+|---------|---------------|----------------------|--------------|-----------------------------|
+| **VLAN Segmentation** | Docker user-defined bridges | 802.1Q VLAN tagging on switches | Layer 2 (Data Link) | Demonstrates MAC-level segmentation and broadcast domain isolation. |
+| **Inter-VLAN Routing** | Router container with IP forwarding | Layer 3 switch or router | Layer 3 (Network) | Routes IP packets between subnets and applies NAT/firewall rules. |
+| **DNS Resolution** | CoreDNS authoritative server | Internal DNS infrastructure | Layer 7 (Application) | Handles name-resolution queries over UDP/TCP atop lower layers. |
+| **DHCP** | dnsmasq DHCP server | DHCP server in enterprise network | Layer 7 (Application) | Negotiates leases, delivering IP/gateway/DNS options via UDP broadcasts. |
+| **HTTPS/TLS** | Nginx with SSL certificates | Secure web services | Layer 7 (Application) | Terminates TLS sessions and serves encrypted HTTP content. |
+| **NAT** | iptables MASQUERADE | Corporate gateway NAT | Layer 3 (Network) | Rewrites IP headers to share WAN access across private hosts. |
+| **Firewall** | iptables with stateful rules | Enterprise firewall/ACLs | Layers 3/4 (Network/Transport) | Filters traffic based on IP/port tuples with connection tracking. |
+| **Monitoring** | Live tcpdump traffic capture | Network monitoring tools | Layers 2-4 (Data Link/Network/Transport) | Captures frames and packets to inspect link, IP, and transport headers. |
 
 ---
 
@@ -44,15 +46,28 @@ A comprehensive, self-contained Docker-based demonstration of enterprise network
 - **VLAN 20 (10.20.20.0/24)**: DHCP-based assignments, separate L2 domain
 - **WAN (172.20.0.0/24)**: Simulates external network access via NAT
 
+### OSI Layer Mapping
+
+| Component | OSI Layer(s) | How it uses that layer in the demo |
+|-----------|---------------|------------------------------------|
+| Router (`router`) | Layer 3 (Network) | Forwards IP packets between VLANs and the WAN while enforcing NAT and firewall policies with iptables. |
+| CoreDNS (`coredns10`, `coredns20`) | Layer 7 (Application) | Responds to DNS queries over UDP/TCP, translating hostnames to IP addresses for clients once lower layers deliver the packets. |
+| dnsmasq DHCP (`dhcp`) | Layer 7 (Application) | Negotiates DHCP leases, handing out IP, gateway, and DNS settings after the transport/network layers carry the broadcast and reply frames. |
+| Nginx (`nginx`) | Layer 7 (Application) | Terminates HTTPS connections and serves content over TLS on top of TCP/IP, showcasing secure application delivery. |
+| Clients (`client10`, `client20`) | Layers 3–7 (Host stack) | Initiate traffic end-to-end, exercising IP routing, TCP/UDP transport, and application protocols like DNS, HTTPS, and DHCP. |
+| WAN Host (`wanhost`) | Layer 7 (Application) | Provides a simple HTTP service on the external network that internal clients reach through routed Layer 3 connectivity. |
+
 ---
 
 ## Quick Start
 
 ### Prerequisites
 
-- Docker Desktop for Mac
-- `make` (included on macOS)
-- Optional: `mkcert` for trusted local certificates
+- Docker Desktop for Mac (required) – install from https://www.docker.com/products/docker-desktop/
+- Homebrew package manager (recommended for tooling installs) – https://brew.sh/
+- `make` (included with macOS Command Line Tools)
+- `jq` (required for demo output formatting) – `brew install jq`
+- `mkcert` (optional, for trusted local certificates) – `brew install mkcert`
 - Modern web browser (for visualization)
 
 ### Installation
@@ -256,6 +271,7 @@ make demo-dns
 
 **Explanation:**
 > CoreDNS is configured as an authoritative DNS server for the `demo.local` zone. It's dual-homed on both VLANs so clients in either network can resolve internal hostnames. This simulates split-horizon DNS in an enterprise environment.
+> It operates at **OSI Layer 7 (Application)**, relying on UDP/TCP transport to deliver DNS answers once the lower layers establish connectivity.
 
 **Technical details:**
 - CoreDNS listens on `10.10.10.53` and `10.20.20.53`
@@ -270,6 +286,7 @@ make demo-https
 
 **Explanation:**
 > The Nginx server is configured with TLS 1.2/1.3 and serves HTTPS on port 443. Certificates are generated using mkcert for local trust (or OpenSSL for self-signed). This demonstrates proper SSL/TLS configuration and certificate chain validation.
+> As an **OSI Layer 7 (Application)** service, it rides on TCP sessions established across the routed network path.
 
 **Technical details:**
 - Nginx serves on `10.10.10.10:443`
@@ -285,6 +302,7 @@ make demo-routing
 
 **Explanation:**
 > The router container has interfaces in all three networks. Kernel IP forwarding (`net.ipv4.ip_forward=1`) is enabled and iptables rules are configured to allow inter-VLAN traffic. Traceroute shows the hop through the router at `10.10.10.254` when reaching VLAN20 from VLAN10.
+> This is a classic **OSI Layer 3 (Network)** function, manipulating IP headers and forwarding decisions between separate Layer 2 domains.
 
 **Technical details:**
 - Router uses dynamic interface detection (not hardcoded)
@@ -300,6 +318,7 @@ make demo-dhcp
 
 **Explanation:**
 > dnsmasq is configured to serve DHCP on VLAN20 with a pool of 10.20.20.100-200. Client20 uses `udhcpc` (BusyBox DHCP client) to obtain an IP, gateway (router), and DNS server. This is how most enterprise networks distribute configuration.
+> The DHCP exchanges occur at **OSI Layer 7 (Application)**, broadcast over the underlying Layer 2 network and transported via UDP/IP.
 
 **Technical details:**
 - DHCP scope: `10.20.20.100-200`
@@ -315,6 +334,7 @@ make demo-nat
 
 **Explanation:**
 > The router performs source NAT (MASQUERADE) for any traffic leaving to the WAN network. Internal clients appear as `172.20.0.254` when accessing external hosts. This is how enterprise networks share a single public IP among many private hosts.
+> NAT modifies headers at **OSI Layer 3 (Network)** while preserving higher-layer payloads intact.
 
 **Technical details:**
 - `iptables -t nat -A POSTROUTING -o wan_if -j MASQUERADE`
@@ -329,6 +349,7 @@ make demo-firewall
 
 **Explanation:**
 > A default-deny policy is used on the FORWARD chain. Rules can be dynamically added to allow or block specific flows. For example, blocking VLAN20 from reaching the HTTPS service, testing it, then removing the rule demonstrates real-time firewall policy changes.
+> Stateful inspection inspects Layer 3/4 tuples, illustrating **OSI Layer 3/4 (Network/Transport)** control over permitted sessions.
 
 **Technical details:**
 - Default policy: `iptables -P FORWARD DROP`

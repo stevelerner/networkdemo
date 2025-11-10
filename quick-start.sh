@@ -54,6 +54,15 @@ echo -e "${CYAN}Container Status:${NC}"
 docker compose ps
 
 echo ""
+echo -e "${CYAN}OSI Layer Roles:${NC}"
+echo "  Router (Layer 3 - Network): Forwards traffic between VLANs and the WAN, applying iptables-based NAT and firewall rules."
+echo "  CoreDNS (Layer 7 - Application): Provides DNS name resolution for demo zones over UDP/TCP on top of the network stack."
+echo "  dnsmasq DHCP (Layer 7 - Application): Negotiates DHCP leases to clients while relying on lower layers for delivery."
+echo "  Nginx (Layer 7 - Application): Terminates HTTPS requests and serves the web UI using TLS over TCP/IP."
+echo "  Clients (Layers 3-7 - Host stack): Generate traffic end-to-end, exercising IP routing, TCP/UDP transport, and application protocols."
+echo "  WAN Host (Layer 7 - Application): Offers a simple HTTP service to demonstrate routed access from internal segments."
+
+echo ""
 echo -e "${GREEN}=================================================="
 echo "Setup Complete!"
 echo -e "==================================================${NC}"
