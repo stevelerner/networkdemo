@@ -2,7 +2,7 @@
 
 A comprehensive, self-contained Docker-based demonstration of enterprise networking concepts including VLAN segmentation, inter-VLAN routing, DNS, DHCP, HTTPS/TLS, NAT, and dynamic firewall rules.
 
-**Perfect for technical interviews, learning, or showcasing networking knowledge.**
+**Perfect for learning, teaching, or demonstrating networking concepts.**
 
 ---
 
@@ -12,7 +12,7 @@ A comprehensive, self-contained Docker-based demonstration of enterprise network
 - [Architecture](#architecture)
 - [Quick Start](#quick-start)
 - [Demo Scripts](#demo-scripts)
-- [Talking Points for Interviews](#talking-points-for-interviews)
+- [Concept Explanations](#concept-explanations)
 - [Advanced Usage](#advanced-usage)
 - [Troubleshooting](#troubleshooting)
 
@@ -183,7 +183,7 @@ make clean && make up  # Full restart
 make demo-dns
 ```
 
-**Talking points:**
+**Explanation:**
 > CoreDNS is configured as an authoritative DNS server for the `demo.local` zone. It's dual-homed on both VLANs so clients in either network can resolve internal hostnames. This simulates split-horizon DNS in an enterprise environment.
 
 **Technical details:**
@@ -197,7 +197,7 @@ make demo-dns
 make demo-https
 ```
 
-**Talking points:**
+**Explanation:**
 > The Nginx server is configured with TLS 1.2/1.3 and serves HTTPS on port 443. Certificates are generated using mkcert for local trust (or OpenSSL for self-signed). This demonstrates proper SSL/TLS configuration and certificate chain validation.
 
 **Technical details:**
@@ -212,7 +212,7 @@ make demo-https
 make demo-routing
 ```
 
-**Talking points:**
+**Explanation:**
 > The router container has interfaces in all three networks. Kernel IP forwarding (`net.ipv4.ip_forward=1`) is enabled and iptables rules are configured to allow inter-VLAN traffic. Traceroute shows the hop through the router at `10.10.10.254` when reaching VLAN20 from VLAN10.
 
 **Technical details:**
@@ -227,7 +227,7 @@ make demo-routing
 make demo-dhcp
 ```
 
-**Talking points:**
+**Explanation:**
 > dnsmasq is configured to serve DHCP on VLAN20 with a pool of 10.20.20.100-200. Client20 uses `udhcpc` (BusyBox DHCP client) to obtain an IP, gateway (router), and DNS server. This is how most enterprise networks distribute configuration.
 
 **Technical details:**
@@ -242,7 +242,7 @@ make demo-dhcp
 make demo-nat
 ```
 
-**Talking points:**
+**Explanation:**
 > The router performs source NAT (MASQUERADE) for any traffic leaving to the WAN network. Internal clients appear as `172.20.0.254` when accessing external hosts. This is how enterprise networks share a single public IP among many private hosts.
 
 **Technical details:**
@@ -256,7 +256,7 @@ make demo-nat
 make demo-firewall
 ```
 
-**Talking points:**
+**Explanation:**
 > A default-deny policy is used on the FORWARD chain. Rules can be dynamically added to allow or block specific flows. For example, blocking VLAN20 from reaching the HTTPS service, testing it, then removing the rule demonstrates real-time firewall policy changes.
 
 **Technical details:**
@@ -267,13 +267,13 @@ make demo-firewall
 
 ---
 
-## Talking Points for Interviews
+## Concept Explanations
 
-### Opening Statement
+### Overview
 
-> This is a portable network infrastructure demo using Docker that showcases enterprise networking concepts. It simulates VLAN segmentation, routing, DNS, DHCP, NAT, and firewall rules—all from the command line.
+This demo showcases enterprise networking concepts using Docker containers to simulate a complete network infrastructure. It demonstrates VLAN segmentation, routing, DNS, DHCP, NAT, and firewall rules—all from the command line.
 
-### Key Concepts to Highlight
+### Key Concepts
 
 #### 1. **Separation of Concerns**
 - VLANs provide L2 isolation
