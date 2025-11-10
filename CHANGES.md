@@ -26,10 +26,12 @@ Added comprehensive Layer 2 switching and Port Address Translation (PAT) demonst
 - **Subnet**: 10.30.30.0/24
 - **Purpose**: Demonstrate Layer 2 switching operations
 - **Components**:
-  - Switch (10.30.30.1) - Open vSwitch
+  - Switch (10.30.30.2) - Open vSwitch
   - Client30A (10.30.30.10)
   - Client30B (10.30.30.20)
   - Router gateway (10.30.30.254)
+
+**Note**: 10.30.30.1 is reserved as the Docker network gateway.
 
 ### 3. WAN Service
 - **Container**: `wan-service`

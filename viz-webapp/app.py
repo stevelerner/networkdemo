@@ -22,12 +22,17 @@ TOPOLOGY = {
         {'id': 'client10', 'label': 'Client10', 'type': 'client', 'ip': '10.10.10.100'},
         {'id': 'dnsmasq', 'label': 'DHCP Server', 'type': 'dhcp', 'ip': '10.20.20.2'},
         {'id': 'client20', 'label': 'Client20', 'type': 'client', 'ip': '10.20.20.x'},
-        {'id': 'wan-host', 'label': 'WAN Host', 'type': 'external', 'ip': '172.20.0.100'}
+        {'id': 'switch', 'label': 'Switch (OVS)', 'type': 'switch', 'ip': '10.30.30.2'},
+        {'id': 'client30a', 'label': 'Client30A', 'type': 'client', 'ip': '10.30.30.10'},
+        {'id': 'client30b', 'label': 'Client30B', 'type': 'client', 'ip': '10.30.30.20'},
+        {'id': 'wan-host', 'label': 'WAN Host', 'type': 'external', 'ip': '172.20.0.100'},
+        {'id': 'wan-service', 'label': 'WAN Service', 'type': 'web', 'ip': '172.20.0.200'}
     ],
     'networks': [
-        {'id': 'vlan10', 'label': 'VLAN 10 (10.10.10.0/24)', 'members': ['router', 'coredns', 'nginx-app', 'client10']},
+        {'id': 'vlan10', 'label': 'VLAN 10 (10.10.10.0/24)', 'members': ['router', 'coredns', 'nginx-app', 'client10', 'viz-webapp']},
         {'id': 'vlan20', 'label': 'VLAN 20 (10.20.20.0/24)', 'members': ['router', 'coredns', 'dnsmasq', 'client20']},
-        {'id': 'wan', 'label': 'WAN (172.20.0.0/24)', 'members': ['router', 'wan-host']}
+        {'id': 'vlan30', 'label': 'VLAN 30 (10.30.30.0/24) - Switched', 'members': ['router', 'switch', 'client30a', 'client30b']},
+        {'id': 'wan', 'label': 'WAN (172.20.0.0/24)', 'members': ['router', 'wan-host', 'wan-service']}
     ]
 }
 

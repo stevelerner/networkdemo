@@ -11,6 +11,7 @@ let linkElements = null;
 // Color mapping for node types
 const nodeColors = {
     router: '#f59e0b',
+    switch: '#fbbf24',  // Golden/amber for Layer 2 switch
     dns: '#8b5cf6',
     web: '#10b981',
     client: '#3b82f6',
