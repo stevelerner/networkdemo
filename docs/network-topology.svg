@@ -69,30 +69,26 @@
   
   <!-- WAN Zone -->
   <rect x="100" y="100" width="1600" height="220" rx="12" fill="#e2e8f0" stroke="#94a3b8" stroke-width="2" opacity="0.5"/>
-  <text class="zone-label" x="150" y="140">WAN Network</text>
-  <text class="ip-label" x="150" y="165">172.20.0.0/24</text>
+  <text class="zone-label" x="150" y="140" font-size="22">WAN Network</text>
+  <text class="ip-label" x="150" y="165" font-size="16">172.20.0.0/24</text>
   
   <!-- WAN Router -->
   <g filter="url(#shadow)">
     <rect x="700" y="165" width="180" height="110" rx="10" fill="url(#routerGrad)"/>
-    <circle cx="790" cy="195" r="4" fill="white" opacity="0.8"/>
-    <circle cx="777" cy="208" r="3" fill="white" opacity="0.6"/>
-    <circle cx="803" cy="208" r="3" fill="white" opacity="0.6"/>
-    <text class="node-label" x="790" y="233" text-anchor="middle" font-size="14">Router</text>
-    <text class="node-label" x="790" y="250" text-anchor="middle" font-size="11">alpine:3.20</text>
-    <text class="node-label" x="790" y="265" text-anchor="middle" font-size="11">iptables</text>
+    <text class="node-label" x="790" y="213" text-anchor="middle" font-size="17">Router</text>
+    <text class="node-label" x="790" y="237" text-anchor="middle" font-size="14">alpine:3.20</text>
+    <text class="node-label" x="790" y="258" text-anchor="middle" font-size="14">iptables</text>
   </g>
-  <text class="ip-label" x="790" y="300" text-anchor="middle" font-size="13">172.20.0.254</text>
+  <text class="ip-label" x="790" y="300" text-anchor="middle" font-size="15">172.20.0.254</text>
   
   <!-- WAN Host -->
   <g filter="url(#shadow)">
     <rect x="1350" y="165" width="180" height="110" rx="10" fill="url(#wanGrad)"/>
-    <rect x="1375" y="185" width="130" height="55" rx="3" fill="white" opacity="0.3"/>
-    <text class="node-label" x="1440" y="228" text-anchor="middle" font-size="14">WAN Host</text>
-    <text class="node-label" x="1440" y="247" text-anchor="middle" font-size="11">alpine:3.20</text>
-    <text class="node-label" x="1440" y="262" text-anchor="middle" font-size="11">Python HTTP</text>
+    <text class="node-label" x="1440" y="215" text-anchor="middle" font-size="17">WAN Host</text>
+    <text class="node-label" x="1440" y="239" text-anchor="middle" font-size="14">alpine:3.20</text>
+    <text class="node-label" x="1440" y="260" text-anchor="middle" font-size="14">Python HTTP</text>
   </g>
-  <text class="ip-label" x="1440" y="300" text-anchor="middle" font-size="13">172.20.0.100</text>
+  <text class="ip-label" x="1440" y="300" text-anchor="middle" font-size="15">172.20.0.100</text>
   
   <!-- Connection: Router to WAN Host -->
   <line class="connection" x1="880" y1="220" x2="1350" y2="220"/>
@@ -100,18 +96,11 @@
   <!-- Central Router -->
   <g filter="url(#shadow)">
     <rect x="750" y="420" width="230" height="160" rx="12" fill="url(#routerGrad)"/>
-    <!-- Router icon details -->
-    <rect x="775" y="445" width="180" height="20" rx="3" fill="white" opacity="0.3"/>
-    <rect x="775" y="475" width="180" height="20" rx="3" fill="white" opacity="0.3"/>
-    <rect x="775" y="505" width="180" height="20" rx="3" fill="white" opacity="0.3"/>
-    <circle cx="800" cy="545" r="5" fill="#fef3c7"/>
-    <circle cx="835" cy="545" r="5" fill="#fef3c7"/>
-    <circle cx="870" cy="545" r="5" fill="#fef3c7"/>
-    <text class="node-label" x="865" y="445" text-anchor="middle" font-size="18">ROUTER</text>
-    <text class="node-label" x="865" y="468" text-anchor="middle" font-size="12">alpine:3.20</text>
-    <text class="node-label" x="865" y="488" text-anchor="middle" font-size="12">iptables</text>
-    <text class="node-label" x="865" y="508" text-anchor="middle" font-size="11">Inter-VLAN + NAT</text>
-    <text class="node-label" x="865" y="526" text-anchor="middle" font-size="11">Firewall</text>
+    <text class="node-label" x="865" y="463" text-anchor="middle" font-size="20">ROUTER</text>
+    <text class="node-label" x="865" y="490" text-anchor="middle" font-size="15">alpine:3.20</text>
+    <text class="node-label" x="865" y="515" text-anchor="middle" font-size="15">iptables</text>
+    <text class="node-label" x="865" y="540" text-anchor="middle" font-size="14">Inter-VLAN + NAT</text>
+    <text class="node-label" x="865" y="562" text-anchor="middle" font-size="14">Firewall</text>
   </g>
   
   <!-- Connection: WAN to Main Router -->
@@ -120,28 +109,28 @@
   
   <!-- VLAN 10 Zone -->
   <rect x="80" y="670" width="800" height="380" rx="15" fill="#dbeafe" stroke="#3b82f6" stroke-width="3" opacity="0.4"/>
-  <text class="zone-label" x="120" y="715" fill="#1e40af" font-size="20">VLAN 10</text>
-  <text class="ip-label" x="120" y="740" font-size="14">10.10.10.0/24</text>
+  <text class="zone-label" x="120" y="715" fill="#1e40af" font-size="22">VLAN 10</text>
+  <text class="ip-label" x="120" y="740" font-size="16">10.10.10.0/24</text>
   
   <!-- VLAN 10: CoreDNS -->
   <g filter="url(#shadow)">
     <rect x="140" y="780" width="160" height="160" rx="10" fill="url(#serverGrad)"/>
     <circle cx="220" cy="825" r="25" fill="white" opacity="0.3"/>
     <text x="220" y="838" text-anchor="middle" font-size="28" fill="white" font-weight="bold">DNS</text>
-    <text class="node-label" x="220" y="875" text-anchor="middle" font-size="15">CoreDNS</text>
-    <text class="node-label" x="220" y="900" text-anchor="middle" font-size="13">coredns:1.11.1</text>
+    <text class="node-label" x="220" y="877" text-anchor="middle" font-size="17">CoreDNS</text>
+    <text class="node-label" x="220" y="905" text-anchor="middle" font-size="15">coredns:1.11.1</text>
   </g>
-  <text class="ip-label" x="220" y="965" text-anchor="middle" font-size="13">10.10.10.53</text>
+  <text class="ip-label" x="220" y="965" text-anchor="middle" font-size="15">10.10.10.53</text>
   
   <!-- VLAN 10: Nginx -->
   <g filter="url(#shadow)">
     <rect x="360" y="780" width="160" height="160" rx="10" fill="url(#webGrad)"/>
     <rect x="390" y="810" width="100" height="70" rx="5" fill="white" opacity="0.3"/>
     <circle cx="440" cy="838" r="14" fill="white" opacity="0.5"/>
-    <text class="node-label" x="440" y="882" text-anchor="middle" font-size="15">Nginx</text>
-    <text class="node-label" x="440" y="903" text-anchor="middle" font-size="12">nginx:1.27-alpine</text>
+    <text class="node-label" x="440" y="884" text-anchor="middle" font-size="17">Nginx</text>
+    <text class="node-label" x="440" y="908" text-anchor="middle" font-size="14">nginx:1.27-alpine</text>
   </g>
-  <text class="ip-label" x="440" y="965" text-anchor="middle" font-size="13">10.10.10.10</text>
+  <text class="ip-label" x="440" y="965" text-anchor="middle" font-size="15">10.10.10.10</text>
   
   <!-- VLAN 10: Client -->
   <g filter="url(#shadow)">
@@ -151,35 +140,35 @@
     <rect x="620" y="832" width="80" height="6" rx="2" fill="white" opacity="0.6"/>
     <rect x="620" y="844" width="80" height="6" rx="2" fill="white" opacity="0.6"/>
     <circle cx="660" cy="860" r="4" fill="white"/>
-    <text class="node-label" x="660" y="892" text-anchor="middle" font-size="15">Client10</text>
-    <text class="node-label" x="660" y="912" text-anchor="middle" font-size="13">alpine:3.20</text>
+    <text class="node-label" x="660" y="895" text-anchor="middle" font-size="17">Client10</text>
+    <text class="node-label" x="660" y="918" text-anchor="middle" font-size="15">alpine:3.20</text>
   </g>
-  <text class="ip-label" x="660" y="965" text-anchor="middle" font-size="13">10.10.10.100</text>
+  <text class="ip-label" x="660" y="965" text-anchor="middle" font-size="15">10.10.10.100</text>
   
   <!-- VLAN 20 Zone -->
   <rect x="920" y="670" width="800" height="380" rx="15" fill="#fce7f3" stroke="#ec4899" stroke-width="3" opacity="0.4"/>
-  <text class="zone-label" x="960" y="715" fill="#be185d" font-size="20">VLAN 20</text>
-  <text class="ip-label" x="960" y="740" font-size="14">10.20.20.0/24</text>
+  <text class="zone-label" x="960" y="715" fill="#be185d" font-size="22">VLAN 20</text>
+  <text class="ip-label" x="960" y="740" font-size="16">10.20.20.0/24</text>
   
   <!-- VLAN 20: CoreDNS -->
   <g filter="url(#shadow)">
     <rect x="980" y="780" width="160" height="160" rx="10" fill="url(#serverGrad)"/>
     <circle cx="1060" cy="825" r="25" fill="white" opacity="0.3"/>
     <text x="1060" y="838" text-anchor="middle" font-size="28" fill="white" font-weight="bold">DNS</text>
-    <text class="node-label" x="1060" y="875" text-anchor="middle" font-size="15">CoreDNS</text>
-    <text class="node-label" x="1060" y="900" text-anchor="middle" font-size="13">coredns:1.11.1</text>
+    <text class="node-label" x="1060" y="877" text-anchor="middle" font-size="17">CoreDNS</text>
+    <text class="node-label" x="1060" y="905" text-anchor="middle" font-size="15">coredns:1.11.1</text>
   </g>
-  <text class="ip-label" x="1060" y="965" text-anchor="middle" font-size="13">10.20.20.53</text>
+  <text class="ip-label" x="1060" y="965" text-anchor="middle" font-size="15">10.20.20.53</text>
   
   <!-- VLAN 20: DHCP -->
   <g filter="url(#shadow)">
     <rect x="1200" y="780" width="160" height="160" rx="10" fill="url(#dhcpGrad)"/>
     <circle cx="1280" cy="828" r="28" fill="white" opacity="0.3"/>
     <text x="1280" y="840" text-anchor="middle" font-size="26" fill="white" font-weight="bold">D</text>
-    <text class="node-label" x="1280" y="875" text-anchor="middle" font-size="15">dnsmasq</text>
-    <text class="node-label" x="1280" y="900" text-anchor="middle" font-size="13">alpine:3.20</text>
+    <text class="node-label" x="1280" y="877" text-anchor="middle" font-size="17">dnsmasq</text>
+    <text class="node-label" x="1280" y="905" text-anchor="middle" font-size="15">alpine:3.20</text>
   </g>
-  <text class="ip-label" x="1280" y="965" text-anchor="middle" font-size="13">10.20.20.2</text>
+  <text class="ip-label" x="1280" y="965" text-anchor="middle" font-size="15">10.20.20.2</text>
   
   <!-- VLAN 20: Client -->
   <g filter="url(#shadow)">
@@ -189,19 +178,19 @@
     <rect x="1460" y="832" width="80" height="6" rx="2" fill="white" opacity="0.6"/>
     <rect x="1460" y="844" width="80" height="6" rx="2" fill="white" opacity="0.6"/>
     <circle cx="1500" cy="860" r="4" fill="white"/>
-    <text class="node-label" x="1500" y="892" text-anchor="middle" font-size="15">Client20</text>
-    <text class="node-label" x="1500" y="912" text-anchor="middle" font-size="13">alpine:3.20</text>
+    <text class="node-label" x="1500" y="895" text-anchor="middle" font-size="17">Client20</text>
+    <text class="node-label" x="1500" y="918" text-anchor="middle" font-size="15">alpine:3.20</text>
   </g>
-  <text class="ip-label" x="1500" y="965" text-anchor="middle" font-size="13">DHCP Assigned</text>
+  <text class="ip-label" x="1500" y="965" text-anchor="middle" font-size="15">DHCP Assigned</text>
   
   <!-- Connections: Router to VLANs -->
   <line class="connection-main" x1="800" y1="580" x2="480" y2="670"/>
   <polygon fill="#94a3b8" points="480,670 475,660 485,663"/>
-  <text class="ip-label" x="620" y="620" text-anchor="middle" fill="#1e40af" font-weight="600" font-size="14">10.10.10.254</text>
+  <text class="ip-label" x="620" y="620" text-anchor="middle" fill="#1e40af" font-weight="600" font-size="16">10.10.10.254</text>
   
   <line class="connection-main" x1="930" y1="580" x2="1320" y2="670"/>
   <polygon fill="#94a3b8" points="1320,670 1315,663 1325,660"/>
-  <text class="ip-label" x="1150" y="620" text-anchor="middle" fill="#be185d" font-weight="600" font-size="14">10.20.20.254</text>
+  <text class="ip-label" x="1150" y="620" text-anchor="middle" fill="#be185d" font-weight="600" font-size="16">10.20.20.254</text>
   
   <!-- Legend -->
   <g transform="translate(250, 350)">
